@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USER ──────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile          Profile?
+  achievements     Achievement[]
+  affirmations     Affirmation[]
+  events           Event[]
+  espEntries       ESPEntry[]
+  iprEntries       IPREntry[]
+  aarEntries       AAREntry[]
+  ledgerEntries    LedgerEntry[]
+  coachingSessions CoachingSession[]
+}
+
+// ─── PROFILE (onboarding data) ─────────────────
+
+model Profile {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                 String
+  performanceDomain    String
+  strengths            String[]
+  confidenceChallenges String[]
+  recurringTriggers    String[]
+  baselineScore        Int // 1–10
+  onboardingCompleted  Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+// ─── ACHIEVEMENT (Top Ten confidence memories) ──
+
+model Achievement {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  evidence    String // concrete proof / details
+  occurredAt  DateTime? // when it happened (nullable)
+  rank        Int? // optional ordering 1–10
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── AFFIRMATION ───────────────────────────────
+
+model Affirmation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String // the affirmation content
+  source    String // which workflow produced it (ESP, PREGAME, etc.)
+  sourceId  String? // optional link to originating entry
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// ─── EVENT ─────────────────────────────────────
+
+model Event {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  eventDate   DateTime?
+  status      String    @default("upcoming") // upcoming | completed | cancelled
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── ESP ENTRY (Daily Effort / Success / Progress) ─
+
+model ESPEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  effort    String
+  success   String
+  progress  String
+  createdAt DateTime @default(now())
+}
+
+// ─── IPR ENTRY (Immediate Progress Review) ─────
+
+model IPREntry {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskName       String
+  whatWentWell   String
+  repeatNextTime String
+  createdAt      DateTime @default(now())
+}
+
+// ─── AAR ENTRY (After Action Review) ───────────
+
+model AAREntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  whatHappened String
+  soWhat      String
+  nowWhat     String
+  createdAt   DateTime @default(now())
+}
+
+// ─── COACHING SESSION (all AI interactions) ────
+
+model CoachingSession {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode       String // ESP | PREGAME | RESET | AAR
+  inputJson  Json // structured input sent to AI
+  outputJson Json? // structured AI response (null if flagged)
+  flagged    Boolean  @default(false)
+  reason     String? // why it was flagged (null if safe)
+  createdAt  DateTime @default(now())
+}
+
+// ─── LEDGER ENTRY (confidence accounting) ──────
+
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String // DEPOSIT | WITHDRAWAL | ADJUSTMENT
+  title       String
+  description String?
+  scoreDelta  Int? // nullable point change
+  sourceId    String? // nullable FK to originating record
+  sourceType  String? // nullable: ESP | PREGAME | RESET | AAR | TOP_TEN | MANUAL
+  createdAt   DateTime @default(now())
+}

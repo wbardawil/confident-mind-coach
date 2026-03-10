@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install @clerk/nextjs @anthropic-ai/sdk prisma @prisma/client zod react-hook-form @hookform/resolvers lucide-react class-variance-authority clsx tailwind-merge)",
+      "Bash(npm install @clerk/nextjs@^5 @anthropic-ai/sdk prisma @prisma/client zod react-hook-form @hookform/resolvers lucide-react class-variance-authority clsx tailwind-merge)",
+      "Bash(npm install -D vitest @testing-library/react @testing-library/jest-dom)",
+      "Bash(npm install tailwindcss-animate)",
+      "Bash(npx shadcn@latest add button card separator sheet --yes)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm ls @prisma/client prisma)",
+      "Bash(npx prisma validate)",
+      "Bash(npm install prisma@^5 @prisma/client@^5)",
+      "Bash(DATABASE_URL=\"postgresql://test:test@localhost:5432/test\" npx prisma validate)",
+      "Bash(DATABASE_URL=\"postgresql://test:test@localhost:5432/test\" npx prisma generate)",
+      "Bash(NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=\"pk_test_...\" CLERK_SECRET_KEY=\"sk_test_...\" timeout 15 npx next dev --port 3099)",
+      "Bash(npx shadcn@latest add input textarea label badge dialog --yes)",
+      "Bash(find \"src/app/\\(app\\)\" -type f)",
+      "Bash(NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=\"pk_test_...\" CLERK_SECRET_KEY=\"sk_test_...\" timeout 20 npx next dev --port 3097)"
+    ]
+  }
+}
