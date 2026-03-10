@@ -61,16 +61,17 @@ npm test
 
 ## Current Phase
 
-Phase 2 complete:
-- Onboarding system
-- Profile persistence
-- Achievement memory (Top Ten)
-- Dashboard navigation
-- Route guards
-- Prisma + PostgreSQL integration
+Phase 3 complete:
+- Daily ESP reflection form
+- AI coaching response
+- affirmation generation
+- confidence ledger deposit
+- safety escalation flow
 
-Next phase:
-Phase 3 – Daily ESP Coaching Engine
+### Known Issue
+
+Anthropic API billing must be enabled for live coaching responses.
+Until credits are added, the Daily ESP flow will show an API error.
 
 ## What Works Now
 

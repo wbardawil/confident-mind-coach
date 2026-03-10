@@ -13,7 +13,7 @@
 - Top Ten CRUD
 - redirect guard
 
-## Phase 3 — Daily ESP Coaching
+## Phase 3 — Daily ESP Coaching ✅
 - Daily ESP form
 - ESPEntry persistence
 - CoachingSession creation

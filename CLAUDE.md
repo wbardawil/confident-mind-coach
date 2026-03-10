@@ -66,6 +66,6 @@ Completed:
 - Phase 2 onboarding and Top Ten
 
 Next:
-- Phase 3 Daily ESP only
+Phase 4 Pregame + Reset routines
 
-Do not build Pregame, Reset, AAR, or dashboard analytics until Phase 3 is complete and validated.
+Do not build AAR, dashboard analytics, or advanced agent orchestration until Phase 4 is complete and validated.
