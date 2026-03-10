@@ -1,16 +1,20 @@
 Project: Confident Mind Coach
 
-Current Phase: 2 complete
+Current Phase: 3 complete
 
 Completed:
 ✓ Phase 1 — foundation
 ✓ Phase 2 — onboarding + Top Ten
+✓ Phase 3 — Daily ESP coaching loop
 ✓ PostgreSQL connected
 ✓ Prisma schema synced
 ✓ Clerk-safe local dev fallback working
 
 Next Phase:
-Phase 3 — Daily ESP + AI coaching
+Phase 4 — Pregame + Reset routines
+
+Current Blocker:
+- Anthropic API billing credits required for live AI calls
 
 Stack:
 Next.js 14
@@ -44,3 +48,11 @@ Memory tables:
 - LedgerEntry
 - Affirmation
 - Event
+
+Database State:
+- Prisma schema synced
+- Database pushed via prisma db push
+
+Environment:
+- Clerk running in dev fallback mode
+- Anthropic API key configured

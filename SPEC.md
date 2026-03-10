@@ -87,9 +87,8 @@ Implemented:
 - Profile persistence
 - Achievement persistence
 - Route guard
-
-Next to implement:
-- Daily ESP coaching loop
-- AI-generated coaching response
+- Daily ESP reflection
+- AI coaching generation
 - affirmation generation
 - ledger entry creation
+- safety escalation flow
