@@ -64,10 +64,11 @@ Rules:
 Completed:
 - Phase 1 foundation
 - Phase 2 onboarding and Top Ten
-- Phase 3 Daily ESP loop
+- Phase 3 Daily ESP
 - Phase 4 Pregame and Reset
+- Phase 5 AAR and Dashboard
 
 Next:
-- Phase 5 AAR only
+- Phase 6 stabilization and testing
 
-Do not build dashboard analytics or broader agent orchestration until Phase 5 is complete and validated.
+Do not build new product features until stabilization and testing are complete.

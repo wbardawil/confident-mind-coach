@@ -26,13 +26,22 @@
 - Pregame
 - Reset
 
-## Phase 5 — Reflection
-- AAR
+## Phase 5 — AAR + Dashboard ✅
+- AAR form
+- AAREntry persistence
+- CoachingSession creation
+- dashboard aggregation
+- recent sessions
+- recent affirmations
+- recent ESP entries
+- friendly AI error handling
 
-## Phase 6 — Safety and Reliability
-- expanded safety handling
-- testing
-- validation hardening
+## Phase 6 — Stabilization and Testing
+- manual QA of all flows
+- edge-case fixes
+- safety-path validation
+- tests for validators, actions, and parsing
+- polish empty states and loading states
 
 ## Phase 7 — Insights
 - dashboard depth

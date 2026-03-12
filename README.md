@@ -59,13 +59,17 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 npm test
 ```
 
-## Current Phase
+## Current Status
 
-Phase 4 complete:
-- Daily ESP coaching loop
-- Pregame routine
-- Reset routine
-- safety escalation flow
+v1 complete:
+- Onboarding
+- Top Ten CRUD
+- Daily ESP
+- Pregame
+- Reset
+- AAR
+- Dashboard
+- Safety escalation flow
 
 
 ## What Works Now
