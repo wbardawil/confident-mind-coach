@@ -54,6 +54,7 @@ export function EspForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <fieldset disabled={isPending}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="effort">Effort</Label>
@@ -110,6 +111,7 @@ export function EspForm() {
               {isPending ? "Reflecting..." : "Submit Reflection"}
             </Button>
           </form>
+          </fieldset>
         </CardContent>
       </Card>
 

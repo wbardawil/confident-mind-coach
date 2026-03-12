@@ -56,6 +56,7 @@ export function AarForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <fieldset disabled={isPending}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="whatHappened">What Happened</Label>
@@ -112,6 +113,7 @@ export function AarForm() {
               {isPending ? "Reviewing..." : "Submit Review"}
             </Button>
           </form>
+          </fieldset>
         </CardContent>
       </Card>
 

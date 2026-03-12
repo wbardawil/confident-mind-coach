@@ -59,6 +59,7 @@ export function ResetForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <fieldset disabled={isPending}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="eventDescription">What Happened</Label>
@@ -119,6 +120,7 @@ export function ResetForm() {
               {isPending ? "Resetting..." : "Run Reset"}
             </Button>
           </form>
+          </fieldset>
         </CardContent>
       </Card>
 

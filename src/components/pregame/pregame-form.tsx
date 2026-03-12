@@ -61,6 +61,7 @@ export function PregameForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <fieldset disabled={isPending}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="upcomingEvent">Upcoming Event</Label>
@@ -135,6 +136,7 @@ export function PregameForm() {
               {isPending ? "Preparing..." : "Run Pregame"}
             </Button>
           </form>
+          </fieldset>
         </CardContent>
       </Card>
 
