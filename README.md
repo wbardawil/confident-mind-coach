@@ -61,17 +61,12 @@ npm test
 
 ## Current Phase
 
-Phase 3 complete:
-- Daily ESP reflection form
-- AI coaching response
-- affirmation generation
-- confidence ledger deposit
+Phase 4 complete:
+- Daily ESP coaching loop
+- Pregame routine
+- Reset routine
 - safety escalation flow
 
-### Known Issue
-
-Anthropic API billing must be enabled for live coaching responses.
-Until credits are added, the Daily ESP flow will show an API error.
 
 ## What Works Now
 
@@ -83,6 +78,5 @@ Until credits are added, the Daily ESP flow will show an API error.
 - Redirect guard
 - PostgreSQL + Prisma connection
 
-## In Progress
 
-Phase 3 – Daily ESP Coaching Engine
+

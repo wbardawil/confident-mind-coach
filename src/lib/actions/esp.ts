@@ -182,3 +182,20 @@ export async function getRecentEspEntries(limit = 5) {
     take: limit,
   });
 }
+
+export async function getRecentEspSessions(limit = 5) {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  return db.coachingSession.findMany({
+    where: { userId: user.id, mode: COACHING_MODES.ESP, flagged: false },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      inputJson: true,
+      outputJson: true,
+      createdAt: true,
+    },
+  });
+}

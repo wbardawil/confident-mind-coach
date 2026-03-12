@@ -1,17 +1,18 @@
 Project: Confident Mind Coach
 
-Current Phase: 3 complete
+Current Phase: 4 complete
 
 Completed:
 ✓ Phase 1 — foundation
 ✓ Phase 2 — onboarding + Top Ten
 ✓ Phase 3 — Daily ESP coaching loop
+✓ Phase 4 — Pregame + Reset routines
 ✓ PostgreSQL connected
 ✓ Prisma schema synced
 ✓ Clerk-safe local dev fallback working
 
 Next Phase:
-Phase 4 — Pregame + Reset routines
+Phase 5 — AAR reflection engine
 
 Current Blocker:
 - Anthropic API billing credits required for live AI calls
@@ -33,9 +34,9 @@ Working Flows:
 - Redirect guard
 
 Planned Agent Structure:
-- ESP
-- Pregame
-- Reset
+- ESP ✅
+- Pregame ✅
+- Reset ✅
 - AAR
 
 Memory tables:

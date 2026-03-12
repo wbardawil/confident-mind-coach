@@ -22,3 +22,24 @@ export const espResponseSchema = z.object({
 });
 
 export type EspResponse = z.infer<typeof espResponseSchema>;
+
+// ─── Pregame Response ───────────────────────────
+
+export const pregameResponseSchema = z.object({
+  takeStock: z.string().min(1, "takeStock is required"),
+  situationAssessment: z.string().min(1, "situationAssessment is required"),
+  enoughStatement: z.string().min(1, "enoughStatement is required"),
+  visualizationPrompt: z.string().min(1, "visualizationPrompt is required"),
+});
+
+export type PregameResponse = z.infer<typeof pregameResponseSchema>;
+
+// ─── Reset Response ─────────────────────────────
+
+export const resetResponseSchema = z.object({
+  acknowledgement: z.string().min(1, "acknowledgement is required"),
+  safeguard: z.string().min(1, "safeguard is required"),
+  nextActionCue: z.string().min(1, "nextActionCue is required"),
+});
+
+export type ResetResponse = z.infer<typeof resetResponseSchema>;

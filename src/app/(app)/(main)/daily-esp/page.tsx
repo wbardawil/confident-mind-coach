@@ -1,16 +1,10 @@
-import { getRecentEspEntries } from "@/lib/actions/esp";
+import { getRecentEspSessions } from "@/lib/actions/esp";
 import { EspForm } from "@/components/daily-esp/esp-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ExpandableCard } from "@/components/shared/expandable-card";
 import { Separator } from "@/components/ui/separator";
 
 export default async function DailyEspPage() {
-  const recentEntries = await getRecentEspEntries(5);
+  const recentSessions = await getRecentEspSessions(5);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -23,40 +17,80 @@ export default async function DailyEspPage() {
 
       <EspForm />
 
-      {/* Recent entries */}
-      {recentEntries.length > 0 && (
+      {/* Recent sessions */}
+      {recentSessions.length > 0 && (
         <div className="mt-10">
           <h2 className="mb-4 text-lg font-semibold">Recent Reflections</h2>
           <div className="space-y-4">
-            {recentEntries.map((entry) => (
-              <Card key={entry.id}>
-                <CardHeader className="pb-2">
-                  <CardDescription>
-                    {entry.createdAt.toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div>
-                    <span className="font-medium">Effort:</span>{" "}
-                    {entry.effort}
-                  </div>
-                  <Separator />
-                  <div>
-                    <span className="font-medium">Success:</span>{" "}
-                    {entry.success}
-                  </div>
-                  <Separator />
-                  <div>
-                    <span className="font-medium">Progress:</span>{" "}
-                    {entry.progress}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {recentSessions.map((session) => {
+              const input = session.inputJson as Record<string, unknown> | null;
+              const output = session.outputJson as Record<string, unknown> | null;
+              const ledger = output?.ledgerImpact as Record<string, unknown> | null;
+
+              return (
+                <ExpandableCard
+                  key={session.id}
+                  date={session.createdAt.toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                  summary={
+                    input?.effort ? (
+                      <div>
+                        <span className="font-medium">Effort:</span>{" "}
+                        {String(input.effort)}
+                      </div>
+                    ) : null
+                  }
+                >
+                  {input?.success ? (
+                    <>
+                      <Separator />
+                      <div>
+                        <span className="font-medium">Success:</span>{" "}
+                        {String(input.success)}
+                      </div>
+                    </>
+                  ) : null}
+                  {input?.progress ? (
+                    <>
+                      <Separator />
+                      <div>
+                        <span className="font-medium">Progress:</span>{" "}
+                        {String(input.progress)}
+                      </div>
+                    </>
+                  ) : null}
+                  {output?.reflection ? (
+                    <>
+                      <Separator />
+                      <div className="text-muted-foreground">
+                        <span className="font-medium text-foreground">Coaching:</span>{" "}
+                        {String(output.reflection)}
+                      </div>
+                    </>
+                  ) : null}
+                  {output?.affirmation ? (
+                    <>
+                      <Separator />
+                      <div className="italic text-primary">
+                        &ldquo;{String(output.affirmation)}&rdquo;
+                      </div>
+                    </>
+                  ) : null}
+                  {ledger?.title ? (
+                    <>
+                      <Separator />
+                      <div className="text-muted-foreground">
+                        <span className="font-medium text-foreground">Deposit:</span>{" "}
+                        {String(ledger.title)} (+{String(ledger.scoreDelta)})
+                      </div>
+                    </>
+                  ) : null}
+                </ExpandableCard>
+              );
+            })}
           </div>
         </div>
       )}
