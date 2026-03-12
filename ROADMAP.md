@@ -36,17 +36,21 @@
 - recent ESP entries
 - friendly AI error handling
 
-## Phase 6 — Stabilization and Testing
+## Phase 6 — Stabilization and Testing (in progress)
 - manual QA of all flows
 - edge-case fixes
 - safety-path validation
 - tests for validators, actions, and parsing
 - polish empty states and loading states
+- Transaction safety and persistence hardening implemented for Reset
 
-## Phase 7 — Insights
+## Phase 7 — Insights (started)
 - dashboard depth
 - ledger views
 - confidence trends
+- Confidence Ledger view implemented
+- 14-day confidence trend visualization
+- Ledger withdrawals and recovery tracking
 
 Phase 8 — Deployment
 Phase 9 — Real usage + UX improvements

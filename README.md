@@ -4,6 +4,19 @@ AI-powered mental performance coaching system.
 
 The app helps users build, protect, and deploy confidence through structured routines.
 
+## Current Development Status
+
+The Confident Mind Coach application currently includes:
+
+- Core coaching flows (ESP, Pregame, Reset, AAR)
+- Confidence Ledger tracking deposits and withdrawals
+- Recovery coaching with reset support
+- 14-day confidence trend insights
+- Transaction-safe persistence
+- 183 automated tests
+
+The system is currently undergoing stabilization and testing before production deployment.
+
 ## Tech Stack
 
 - Next.js 14 (App Router)
@@ -58,29 +71,6 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 ```bash
 npm test
 ```
-
-## Current Status
-
-v1 complete:
-- Onboarding
-- Top Ten CRUD
-- Daily ESP
-- Pregame
-- Reset
-- AAR
-- Dashboard
-- Safety escalation flow
-
-
-## What Works Now
-
-- Landing page
-- Onboarding flow
-- Profile persistence
-- Top Ten CRUD
-- Dashboard navigation
-- Redirect guard
-- PostgreSQL + Prisma connection
 
 
 

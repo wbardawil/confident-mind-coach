@@ -14,6 +14,7 @@ import { resetInputSchema, type ResetInput } from "@/lib/validators/reset";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
 import { friendlyAiError } from "@/lib/utils/errors";
 import { detectDistress } from "@/lib/utils/distress-detect";
+import { coerceToNumber } from "@/lib/utils/coerce";
 
 // ─── Return types ──────────────────────────────
 
@@ -43,9 +44,15 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
   const user = await getCurrentUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
-  // 2. Validate input
-  const parsed = resetInputSchema.safeParse(data);
-  if (!parsed.success) return { success: false, error: "Validation failed" };
+  // 2. Validate input (safely coerce confidenceScore in case it arrives as
+  //    string from the Server Action serialization boundary — Number("") and
+  //    Number("   ") silently return 0, so we use a safe coercion helper)
+  const coerced = {
+    ...data,
+    confidenceScore: coerceToNumber(data.confidenceScore),
+  };
+  const parsed = resetInputSchema.safeParse(coerced);
+  if (!parsed.success) return { success: false, error: "Please check your inputs and try again." };
 
   const { eventDescription, emotionalState, confidenceScore } = parsed.data;
 
@@ -110,44 +117,65 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
 
   const aiData = aiResult.data;
 
-  // 7. Persist CoachingSession + LedgerEntry (withdrawal + recovery)
-  await db.coachingSession.create({
-    data: {
-      userId: user.id,
-      mode: COACHING_MODES.RESET,
-      inputJson: { eventDescription, emotionalState, confidenceScore },
-      outputJson: aiData,
-      flagged: false,
-    },
+  // 7. Detect distress → optional withdrawal (text signals + confidence score)
+  const distress = detectDistress({
+    eventDescription,
+    emotionalState,
+    confidenceScore,
   });
 
-  // 7a. Detect distress → optional withdrawal
-  const distress = detectDistress([eventDescription, emotionalState]);
-
-  if (distress.detected) {
-    await db.ledgerEntry.create({
+  // 8. Persist CoachingSession + ledger entries as ONE atomic event.
+  //
+  //    A successful Reset is a single product concept: "I did a Reset, here
+  //    is the coaching I received, and here is its confidence impact."  If any
+  //    write fails, the entire event should roll back so the user can retry
+  //    cleanly without orphaned sessions or half-state ledger entries.
+  //
+  //    Note: the *flagged* and *AI-parse-failure* CoachingSession writes
+  //    (steps 3 and 6 above) intentionally stay outside any transaction —
+  //    they are error-path logs, not part of a successful Reset event.
+  const persistOps: Prisma.PrismaPromise<unknown>[] = [
+    db.coachingSession.create({
       data: {
         userId: user.id,
-        type: LEDGER_TYPES.WITHDRAWAL,
-        title: "Confidence Dip",
-        description: `Setback signals: ${distress.matchedSignals.join(", ")}`,
-        scoreDelta: distress.withdrawalScore,
-        sourceType: LEDGER_SOURCE_TYPES.RESET,
+        mode: COACHING_MODES.RESET,
+        inputJson: { eventDescription, emotionalState, confidenceScore },
+        outputJson: aiData,
+        flagged: false,
       },
-    });
+    }),
+  ];
+
+  if (distress.detected) {
+    persistOps.push(
+      db.ledgerEntry.create({
+        data: {
+          userId: user.id,
+          type: LEDGER_TYPES.WITHDRAWAL,
+          title: "Confidence Dip",
+          description: `Setback signals: ${distress.matchedSignals.join(", ")}`,
+          scoreDelta: distress.withdrawalScore,
+          sourceType: LEDGER_SOURCE_TYPES.RESET,
+        },
+      }),
+    );
   }
 
-  // 7b. Always create recovery deposit (the act of resetting itself is positive)
-  await db.ledgerEntry.create({
-    data: {
-      userId: user.id,
-      type: LEDGER_TYPES.DEPOSIT,
-      title: "Reset Recovery",
-      description: `Reset after: ${eventDescription.slice(0, 80)}`,
-      scoreDelta: 2,
-      sourceType: LEDGER_SOURCE_TYPES.RESET,
-    },
-  });
+  // Always create recovery deposit (the act of resetting itself is positive)
+  persistOps.push(
+    db.ledgerEntry.create({
+      data: {
+        userId: user.id,
+        type: LEDGER_TYPES.DEPOSIT,
+        title: "Reset Recovery",
+        description: `Reset after: ${eventDescription.slice(0, 80)}`,
+        scoreDelta: 2,
+        sourceType: LEDGER_SOURCE_TYPES.RESET,
+      },
+    }),
+  );
+
+  await db.$transaction(persistOps);
 
   revalidatePath("/reset");
   revalidatePath("/dashboard");

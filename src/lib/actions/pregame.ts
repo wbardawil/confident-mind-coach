@@ -13,6 +13,7 @@ import { parseAiResponse } from "@/lib/ai/parse";
 import { pregameInputSchema, type PregameInput } from "@/lib/validators/pregame";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
 import { friendlyAiError } from "@/lib/utils/errors";
+import { coerceToNumber } from "@/lib/utils/coerce";
 
 // ─── Return types ──────────────────────────────
 
@@ -42,8 +43,14 @@ export async function submitPregame(data: PregameInput): Promise<PregameResult> 
   const user = await getCurrentUser();
   if (!user) return { success: false, error: "Not authenticated" };
 
-  // 2. Validate input
-  const parsed = pregameInputSchema.safeParse(data);
+  // 2. Validate input (safely coerce confidenceLevel in case it arrives as
+  //    string from the Server Action serialization boundary — Number("") and
+  //    Number("   ") silently return 0, so we use a safe coercion helper)
+  const coerced = {
+    ...data,
+    confidenceLevel: coerceToNumber(data.confidenceLevel),
+  };
+  const parsed = pregameInputSchema.safeParse(coerced);
   if (!parsed.success) return { success: false, error: "Validation failed" };
 
   const { upcomingEvent, confidenceLevel, fear, definitionOfSuccess } = parsed.data;

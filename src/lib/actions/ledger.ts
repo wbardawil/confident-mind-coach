@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
+import { LEDGER_TYPES } from "@/lib/utils/constants";
 
 export interface LedgerSummary {
   totalScore: number;
@@ -36,12 +37,12 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
 
       // Deposit count
       db.ledgerEntry.count({
-        where: { userId: user.id, type: "DEPOSIT" },
+        where: { userId: user.id, type: LEDGER_TYPES.DEPOSIT },
       }),
 
       // Withdrawal count
       db.ledgerEntry.count({
-        where: { userId: user.id, type: "WITHDRAWAL" },
+        where: { userId: user.id, type: LEDGER_TYPES.WITHDRAWAL },
       }),
 
       // Net change over last 14 days

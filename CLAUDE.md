@@ -68,7 +68,14 @@ Completed:
 - Phase 4 Pregame and Reset
 - Phase 5 AAR and Dashboard
 
-Next:
-- Phase 6 stabilization and testing
+The project is currently in Phase 6 (Stabilization) with initial Phase 7 insights implemented.
+
+The Confidence Ledger system is now functional, including:
+- deposits
+- withdrawals
+- recovery tracking
+- 14-day confidence trend
+
+Stabilization work remains the priority before deployment.
 
 Do not build new product features until stabilization and testing are complete.

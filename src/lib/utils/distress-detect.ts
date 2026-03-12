@@ -1,10 +1,11 @@
 /**
  * Rule-based distress signal detector for Reset flow.
  *
- * Scans emotional-state text for keywords that indicate a confidence
- * setback worth recording as a ledger withdrawal. This is NOT a crisis
- * detector (that lives in lib/safety/crisis-detect.ts) — it only captures
- * moderate distress signals tied to performance confidence.
+ * Scans emotional-state text for keywords AND the self-reported confidence
+ * score to determine whether a confidence setback is worth recording as a
+ * ledger withdrawal. This is NOT a crisis detector (that lives in
+ * lib/safety/crisis-detect.ts) — it only captures moderate distress
+ * signals tied to performance confidence.
  *
  * Returns a small negative withdrawal score (−1 or −2) when signals are
  * found, or 0 when the text doesn't indicate significant distress.
@@ -26,6 +27,10 @@ const DISTRESS_SIGNALS: DistressSignal[] = [
   { pattern: /\bspiral(l?ing)?\b/i, weight: 2, label: "spiraling" },
   { pattern: /\bshut\s*down\b/i, weight: 2, label: "shut down" },
   { pattern: /\bchok(e[ds]?|ing)\b/i, weight: 2, label: "choked" },
+  { pattern: /\bdevastat(ed|ing)?\b/i, weight: 2, label: "devastated" },
+  { pattern: /\bcrushed\b/i, weight: 2, label: "crushed" },
+  { pattern: /\bhopeless(ness)?\b/i, weight: 2, label: "hopeless" },
+  { pattern: /\bworthless(ness)?\b/i, weight: 2, label: "worthless" },
 
   // ─── Milder signals (weight 1) ──────────────────
   { pattern: /\boverwhelm(ed|ing)?\b/i, weight: 1, label: "overwhelmed" },
@@ -39,6 +44,16 @@ const DISTRESS_SIGNALS: DistressSignal[] = [
   { pattern: /\bdread(ed|ing)?\b/i, weight: 1, label: "dread" },
   { pattern: /\bself[- ]?doubt\b/i, weight: 1, label: "self-doubt" },
   { pattern: /\blost\s+confiden(ce|t)\b/i, weight: 1, label: "lost confidence" },
+  { pattern: /\blos(er|s|t)\b/i, weight: 1, label: "loser" },
+  { pattern: /\bloose?r\b/i, weight: 1, label: "loser" }, // common misspelling
+  { pattern: /\bdefeated\b/i, weight: 1, label: "defeated" },
+  { pattern: /\bhelpless(ness)?\b/i, weight: 1, label: "helpless" },
+  { pattern: /\bdisaster\b/i, weight: 1, label: "disaster" },
+  { pattern: /\bterrible\b/i, weight: 1, label: "terrible" },
+  { pattern: /\bawful\b/i, weight: 1, label: "awful" },
+  { pattern: /\bmess(ed)?\s+up\b/i, weight: 1, label: "messed up" },
+  { pattern: /\bblew\s+it\b/i, weight: 1, label: "blew it" },
+  { pattern: /\bbombed\b/i, weight: 1, label: "bombed" },
 ];
 
 export interface DistressResult {
@@ -51,18 +66,60 @@ export interface DistressResult {
 }
 
 /**
- * Scan one or more text inputs for distress signals.
+ * Structured input for distress detection.
+ * All fields are optional/nullable so callers never need to pre-filter.
+ */
+export interface DetectDistressInput {
+  eventDescription?: string | null;
+  emotionalState?: string | null;
+  confidenceScore?: number | null;
+}
+
+/**
+ * Scan event description, emotional state text, and confidence score
+ * for distress signals.
+ *
+ * Confidence 1 is treated as a strong signal (weight 2).
+ * Confidence 2–3 is treated as a mild signal (weight 1).
+ * Confidence 4–6 is neutral (draw). Confidence 7–10 is deposit territory.
  *
  * Returns a withdrawal score capped at −2 (never more extreme than that).
  */
-export function detectDistress(inputs: string[]): DistressResult {
-  const combined = inputs.join(" ");
+export function detectDistress(input: DetectDistressInput): DistressResult {
+  // ── Safely combine text fields, filtering out null/undefined/empty ──
+  const textParts: string[] = [];
+  if (input.eventDescription) textParts.push(input.eventDescription);
+  if (input.emotionalState) textParts.push(input.emotionalState);
+  const combined = textParts.join(" ");
+
   const matched: string[] = [];
   let totalWeight = 0;
 
+  // ── Confidence score as a signal ────────────────
+  // 1–3 = withdrawal territory, 4–6 = neutral, 7–10 = deposit territory
+  // Defensive: only process if it's actually a number
+  const score =
+    typeof input.confidenceScore === "number" && !Number.isNaN(input.confidenceScore)
+      ? input.confidenceScore
+      : null;
+
+  if (score != null) {
+    if (score <= 1) {
+      matched.push("very low confidence");
+      totalWeight += 2;
+    } else if (score <= 3) {
+      matched.push("low confidence");
+      totalWeight += 1;
+    }
+  }
+
+  // ── Text-based keyword signals ──────────────────
   for (const signal of DISTRESS_SIGNALS) {
     if (signal.pattern.test(combined)) {
-      matched.push(signal.label);
+      // Avoid duplicate labels (e.g. "loser" pattern + misspelling pattern)
+      if (!matched.includes(signal.label)) {
+        matched.push(signal.label);
+      }
       totalWeight += signal.weight;
     }
   }
