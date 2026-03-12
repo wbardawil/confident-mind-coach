@@ -14,6 +14,7 @@ import {
   Target,
   ClipboardList,
   TrendingUp,
+  TrendingDown,
   Sparkles,
   Activity,
   RefreshCw,
@@ -119,9 +120,27 @@ export default async function DashboardPage() {
                   total points
                 </span>
               </div>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Earned through your daily reflections, preparations, and reviews.
-              </p>
+
+              {/* 14-day net change insight */}
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+                {data.net14d >= 0 ? (
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                )}
+                <span className="text-sm">
+                  <span
+                    className={`font-semibold ${
+                      data.net14d >= 0 ? "text-green-600" : "text-red-500"
+                    }`}
+                  >
+                    {data.net14d >= 0 ? "+" : ""}
+                    {data.net14d}
+                  </span>{" "}
+                  <span className="text-muted-foreground">last 14 days</span>
+                </span>
+              </div>
+
               <Link
                 href={ROUTES.LEDGER}
                 className="mt-3 inline-block text-sm font-medium text-primary hover:underline"

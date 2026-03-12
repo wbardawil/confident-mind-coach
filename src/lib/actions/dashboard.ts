@@ -7,9 +7,15 @@ export async function getDashboardData() {
   const user = await getCurrentUser();
   if (!user) return null;
 
+  // Helper: 14 days ago at midnight
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+  fourteenDaysAgo.setHours(0, 0, 0, 0);
+
   const [
     recentSessions,
     ledgerBalance,
+    net14dAggregate,
     recentAffirmations,
     recentEspEntries,
   ] = await Promise.all([
@@ -28,6 +34,15 @@ export async function getDashboardData() {
     // Ledger balance (sum of all scoreDelta)
     db.ledgerEntry.aggregate({
       where: { userId: user.id },
+      _sum: { scoreDelta: true },
+    }),
+
+    // Net change over last 14 days
+    db.ledgerEntry.aggregate({
+      where: {
+        userId: user.id,
+        createdAt: { gte: fourteenDaysAgo },
+      },
       _sum: { scoreDelta: true },
     }),
 
@@ -63,6 +78,7 @@ export async function getDashboardData() {
     userName: user.profile?.role ?? "there",
     recentSessions,
     confidenceScore: ledgerBalance._sum.scoreDelta ?? 0,
+    net14d: net14dAggregate._sum.scoreDelta ?? 0,
     recentAffirmations,
     recentEspEntries,
   };

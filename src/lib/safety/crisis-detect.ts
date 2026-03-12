@@ -19,7 +19,7 @@ const CRISIS_PATTERNS: RegExp[] = [
   /\b(no\s+reason\s+to\s+live)\b/i,
 
   // self-harm
-  /\b(self[- ]?harm|cut(ting)?\s+my(self)?|hurt(ing)?\s+my(self)?)\b/i,
+  /\b(self[- ]?harm|cut(ting)?\s+myself|hurt(ing)?\s+myself)\b/i,
 
   // crisis distress
   /\b(can'?t\s+go\s+on|give\s+up\s+on\s+life)\b/i,

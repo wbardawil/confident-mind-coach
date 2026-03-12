@@ -27,6 +27,25 @@ describe("scanForCrisis", () => {
     expect(result.flagged).toBe(false);
   });
 
+  it("does not flag 'hurt my' in professional context", () => {
+    const result = scanForCrisis([
+      "that could have hurt my professional image",
+    ]);
+    expect(result.flagged).toBe(false);
+  });
+
+  it("does not flag 'cut my losses'", () => {
+    const result = scanForCrisis(["I need to cut my losses and move on"]);
+    expect(result.flagged).toBe(false);
+  });
+
+  it("does not flag 'lowering myself' or 'feeling insecure'", () => {
+    const result = scanForCrisis([
+      "I was lowering myself to avoid pressure or just feeling insecure",
+    ]);
+    expect(result.flagged).toBe(false);
+  });
+
   // ─── Should flag: suicidal ideation ───────────
   it("flags 'kill myself'", () => {
     const result = scanForCrisis(["I want to kill myself"]);

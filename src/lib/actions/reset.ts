@@ -13,6 +13,7 @@ import { parseAiResponse } from "@/lib/ai/parse";
 import { resetInputSchema, type ResetInput } from "@/lib/validators/reset";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
 import { friendlyAiError } from "@/lib/utils/errors";
+import { detectDistress } from "@/lib/utils/distress-detect";
 
 // ─── Return types ──────────────────────────────
 
@@ -109,7 +110,7 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
 
   const aiData = aiResult.data;
 
-  // 7. Persist CoachingSession + LedgerEntry
+  // 7. Persist CoachingSession + LedgerEntry (withdrawal + recovery)
   await db.coachingSession.create({
     data: {
       userId: user.id,
@@ -120,6 +121,23 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
     },
   });
 
+  // 7a. Detect distress → optional withdrawal
+  const distress = detectDistress([eventDescription, emotionalState]);
+
+  if (distress.detected) {
+    await db.ledgerEntry.create({
+      data: {
+        userId: user.id,
+        type: LEDGER_TYPES.WITHDRAWAL,
+        title: "Confidence Dip",
+        description: `Setback signals: ${distress.matchedSignals.join(", ")}`,
+        scoreDelta: distress.withdrawalScore,
+        sourceType: LEDGER_SOURCE_TYPES.RESET,
+      },
+    });
+  }
+
+  // 7b. Always create recovery deposit (the act of resetting itself is positive)
   await db.ledgerEntry.create({
     data: {
       userId: user.id,

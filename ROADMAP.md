@@ -47,3 +47,8 @@
 - dashboard depth
 - ledger views
 - confidence trends
+
+Phase 8 — Deployment
+Phase 9 — Real usage + UX improvements
+Phase 10 — Confidence analytics
+Phase 11 — Agent orchestration
