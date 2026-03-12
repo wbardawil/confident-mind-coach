@@ -12,6 +12,7 @@ import { resetResponseSchema, type ResetResponse } from "@/lib/ai/schemas";
 import { parseAiResponse } from "@/lib/ai/parse";
 import { resetInputSchema, type ResetInput } from "@/lib/validators/reset";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
+import { friendlyAiError } from "@/lib/utils/errors";
 
 // ─── Return types ──────────────────────────────
 
@@ -85,7 +86,7 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
   } catch (e) {
     return {
       success: false,
-      error: `AI service error: ${e instanceof Error ? e.message : String(e)}`,
+      error: friendlyAiError(e),
     };
   }
 

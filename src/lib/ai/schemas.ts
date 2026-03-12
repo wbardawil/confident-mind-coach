@@ -43,3 +43,12 @@ export const resetResponseSchema = z.object({
 });
 
 export type ResetResponse = z.infer<typeof resetResponseSchema>;
+
+// ─── AAR Response ───────────────────────────────
+
+export const aarResponseSchema = z.object({
+  lessonsLearned: z.string().min(1, "lessonsLearned is required"),
+  improvementPlan: z.string().min(1, "improvementPlan is required"),
+});
+
+export type AarResponse = z.infer<typeof aarResponseSchema>;

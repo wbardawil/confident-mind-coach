@@ -12,6 +12,7 @@ import { espResponseSchema, type EspResponse } from "@/lib/ai/schemas";
 import { parseAiResponse } from "@/lib/ai/parse";
 import { espInputSchema, type EspInput } from "@/lib/validators/esp";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
+import { friendlyAiError } from "@/lib/utils/errors";
 
 // ─── Return types ──────────────────────────────
 
@@ -91,7 +92,7 @@ export async function submitEsp(data: EspInput): Promise<EspResult> {
   } catch (e) {
     return {
       success: false,
-      error: `AI service error: ${e instanceof Error ? e.message : String(e)}`,
+      error: friendlyAiError(e),
     };
   }
 
