@@ -18,13 +18,13 @@ Recent Progress:
 - Introduced withdrawal support for Reset sessions
 - Added distress detection rules
 - Hardened server action input coercion
-- Introduced atomic ledger persistence using Prisma transactions
+- Standardized all 4 coaching actions through shared execution shell (runCoachingFlow)
+- Atomic transaction-based persistence across all coaching flows
 - Replaced string literals with ledger constants
 - Improved validation behavior
 - Expanded automated test coverage (183 tests passing)
 
 Current Focus:
-- Stabilization of persistence patterns across all coaching actions
 - Integration testing
 - Ledger accuracy validation
 - Preparing system for production deployment

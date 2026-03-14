@@ -70,6 +70,10 @@ Completed:
 
 The project is currently in Phase 6 (Stabilization) with initial Phase 7 insights implemented.
 
+All 4 coaching flows (ESP, Pregame, Reset, AAR) share a common execution shell
+via `runCoachingFlow(...)` in `lib/actions/run-coaching-flow.ts`.
+Persistence is atomic (Prisma transactions) across all coaching flows.
+
 The Confidence Ledger system is now functional, including:
 - deposits
 - withdrawals

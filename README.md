@@ -9,10 +9,11 @@ The app helps users build, protect, and deploy confidence through structured rou
 The Confident Mind Coach application currently includes:
 
 - Core coaching flows (ESP, Pregame, Reset, AAR)
+- Shared coaching execution shell across all flows
 - Confidence Ledger tracking deposits and withdrawals
 - Recovery coaching with reset support
 - 14-day confidence trend insights
-- Transaction-safe persistence
+- Transaction-safe atomic persistence across all coaching actions
 - 183 automated tests
 
 The system is currently undergoing stabilization and testing before production deployment.

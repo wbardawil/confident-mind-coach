@@ -43,6 +43,8 @@
 - tests for validators, actions, and parsing
 - polish empty states and loading states
 - Transaction safety and persistence hardening implemented for Reset
+- Coaching action execution standardized through shared pipeline (runCoachingFlow)
+- Atomic persistence applied across all 4 coaching actions
 
 ## Phase 7 — Insights (started)
 - dashboard depth
