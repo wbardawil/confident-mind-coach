@@ -18,13 +18,18 @@ interface LedgerTrendProps {
   trend: TrendPoint[];
 }
 
+/** Height of the chart area in pixels. */
+const CHART_HEIGHT = 120;
+/** Minimum bar height so flat/zero series remain visible. */
+const MIN_BAR_PX = 4;
+
 export function LedgerTrend({ trend }: LedgerTrendProps) {
   if (trend.length === 0) return null;
 
   const values = trend.map((t) => t.cumulative);
-  const max = Math.max(...values, 1); // avoid division by zero
-  const min = Math.min(...values, 0);
-  const range = max - min || 1;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const range = max - min;
 
   // Format date label: "Mar 5"
   function formatDay(iso: string) {
@@ -42,29 +47,27 @@ export function LedgerTrend({ trend }: LedgerTrendProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-end gap-1" style={{ height: 120 }}>
+        <div className="flex items-end gap-1" style={{ height: CHART_HEIGHT }}>
           {trend.map((point) => {
-            const height = ((point.cumulative - min) / range) * 100;
-            // Ensure at least a 4px bar for visibility
-            const barHeight = Math.max(height, 3);
+            // When the series is flat (range === 0), show bars at half height
+            const ratio = range === 0 ? 0.5 : (point.cumulative - min) / range;
+            const barPx = Math.max(Math.round(ratio * CHART_HEIGHT), MIN_BAR_PX);
 
             return (
               <div
                 key={point.date}
-                className="group relative flex flex-1 flex-col items-center"
-                style={{ height: "100%" }}
+                className="group relative flex flex-1 items-end justify-center"
+                style={{ height: CHART_HEIGHT }}
               >
                 {/* Tooltip */}
                 <div className="pointer-events-none absolute -top-8 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-xs text-background group-hover:block">
                   {formatDay(point.date)}: {point.cumulative}
                 </div>
                 {/* Bar */}
-                <div className="mt-auto w-full">
-                  <div
-                    className="mx-auto w-full max-w-[20px] rounded-t bg-primary/80 transition-all hover:bg-primary"
-                    style={{ height: `${barHeight}%` }}
-                  />
-                </div>
+                <div
+                  className="w-full max-w-[20px] rounded-t bg-primary/80 transition-all hover:bg-primary"
+                  style={{ height: barPx }}
+                />
               </div>
             );
           })}

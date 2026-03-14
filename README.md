@@ -14,9 +14,11 @@ The Confident Mind Coach application currently includes:
 - Recovery coaching with reset support
 - 14-day confidence trend insights
 - Transaction-safe atomic persistence across all coaching actions
-- 183 automated tests
+- Editable Settings with coaching profile management
+- Dev-safe authentication with Clerk fallback mode
+- 239 automated tests across 17 test files
 
-The system is currently undergoing stabilization and testing before production deployment.
+The system is completing stabilization before production deployment.
 
 ## Tech Stack
 

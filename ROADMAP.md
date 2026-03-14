@@ -1,13 +1,13 @@
 # Roadmap
 
-## Phase 1 — Foundation
+## Phase 1 — Foundation ✅
 - Next.js scaffold
 - Prisma
 - PostgreSQL
 - Clerk-safe local dev fallback
 - app shell
 
-## Phase 2 — Identity and Memory
+## Phase 2 — Identity and Memory ✅
 - onboarding
 - Profile persistence
 - Top Ten CRUD
@@ -37,24 +37,43 @@
 - friendly AI error handling
 
 ## Phase 6 — Stabilization and Testing (in progress)
-- manual QA of all flows
-- edge-case fixes
-- safety-path validation
-- tests for validators, actions, and parsing
-- polish empty states and loading states
-- Transaction safety and persistence hardening implemented for Reset
-- Coaching action execution standardized through shared pipeline (runCoachingFlow)
-- Atomic persistence applied across all 4 coaching actions
 
-## Phase 7 — Insights (started)
-- dashboard depth
-- ledger views
-- confidence trends
-- Confidence Ledger view implemented
+### 6.1–6.9 — Core Stabilization ✅
+- Shared coaching execution shell (runCoachingFlow)
+- Atomic transaction-based persistence across all 4 coaching actions
+- Input coercion hardening (coerceToNumber)
+- Distress detection and withdrawal pipeline
+- Ledger mock fidelity corrections (null vs zero semantics)
+- 226 automated tests across 16 files
+
+### 6.10 — Deployment Safety Pass ✅
+- Environment variable validation at startup (fail-fast)
+- AI client timeout (15s) and structured JSON error logging
+- UTC-normalized date calculations (timezone/DST safe)
+
+### 6.11 — Release Blocker Triage & Surface Completion ✅
+- Audited all user-facing routes
+- Simplified V1 navigation (single /settings surface)
+- Editable Settings with updateSettings server action and Zod validation
+- displayName added to User model
+- profile.upsert ensures safe profile creation on first save
+- Dev account detection and identity display
+- TagInput hardening (case-insensitive dedup, length limits)
+- UX feedback (success auto-dismiss, inline errors, button state)
+- Dashboard greeting uses user.name with role fallback
+- Profile creation audit (null-safety verified across all routes)
+
+## Phase 7 — Insights (initial pass complete) ✅
+- Confidence Ledger view with summaries
 - 14-day confidence trend visualization
 - Ledger withdrawals and recovery tracking
 
-Phase 8 — Deployment
-Phase 9 — Real usage + UX improvements
-Phase 10 — Confidence analytics
-Phase 11 — Agent orchestration
+## Phase 8 — Deployment
+- CI/CD pipeline
+- Prisma migrate deploy
+- Production environment configuration
+- Monitoring and alerting
+
+## Phase 9 — Real usage + UX improvements
+## Phase 10 — Confidence analytics
+## Phase 11 — Agent orchestration

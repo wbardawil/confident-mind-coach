@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Menu, Zap, User } from "lucide-react";
+import { Menu, Zap } from "lucide-react";
 import {
   LayoutDashboard,
   Trophy,
@@ -55,11 +55,7 @@ export function MobileNav() {
       </div>
 
       <div className="flex items-center gap-3">
-        {ClerkUserButton ? (
-          <ClerkUserButton afterSignOutUrl="/" />
-        ) : (
-          <User className="h-5 w-5 text-muted-foreground" />
-        )}
+        {ClerkUserButton && <ClerkUserButton afterSignOutUrl="/" />}
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">

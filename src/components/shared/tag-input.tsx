@@ -10,14 +10,16 @@ interface TagInputProps {
   value: string[];
   onChange: (value: string[]) => void;
   placeholder?: string;
+  maxLength?: number;
 }
 
-export function TagInput({ value, onChange, placeholder }: TagInputProps) {
+export function TagInput({ value, onChange, placeholder, maxLength = 50 }: TagInputProps) {
   const [input, setInput] = useState("");
 
   function addTag() {
-    const trimmed = input.trim();
-    if (trimmed && !value.includes(trimmed)) {
+    const trimmed = input.trim().slice(0, maxLength);
+    const isDuplicate = value.some((t) => t.toLowerCase() === trimmed.toLowerCase());
+    if (trimmed && !isDuplicate) {
       onChange([...value, trimmed]);
       setInput("");
     }
@@ -42,6 +44,7 @@ export function TagInput({ value, onChange, placeholder }: TagInputProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          maxLength={maxLength}
           className="flex-1"
         />
         <Button type="button" variant="secondary" onClick={addTag} size="sm">

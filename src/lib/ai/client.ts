@@ -9,10 +9,13 @@ type GenerateCoachingArgs = {
 
 export type CoachingRequest = GenerateCoachingArgs;
 
+/** Request timeout in milliseconds. */
+const REQUEST_TIMEOUT_MS = 15_000;
+
 const apiKey = process.env.ANTHROPIC_API_KEY;
 
 const anthropic = apiKey
-  ? new Anthropic({ apiKey })
+  ? new Anthropic({ apiKey, timeout: REQUEST_TIMEOUT_MS })
   : null;
 
 function sleep(ms: number) {
@@ -76,6 +79,30 @@ function isRetryableError(error: unknown): boolean {
   );
 }
 
+/**
+ * Structured diagnostic log for AI call failures.
+ * Includes enough detail for debugging without leaking user content.
+ */
+function logAiError(error: unknown, attempt: number, maxAttempts: number): void {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorName = error instanceof Error ? error.name : "Unknown";
+  const retryable = isRetryableError(error);
+
+  console.error(
+    JSON.stringify({
+      level: "error",
+      service: "ai-client",
+      event: "coaching_call_failed",
+      attempt,
+      maxAttempts,
+      retryable,
+      errorName,
+      errorMessage,
+      timestamp: new Date().toISOString(),
+    }),
+  );
+}
+
 export async function generateCoaching(args: GenerateCoachingArgs): Promise<string> {
   const attempts = 3;
   let lastError: unknown;
@@ -85,6 +112,7 @@ export async function generateCoaching(args: GenerateCoachingArgs): Promise<stri
       return await callAnthropicOnce(args);
     } catch (error) {
       lastError = error;
+      logAiError(error, attempt, attempts);
 
       if (attempt === attempts || !isRetryableError(error)) {
         throw error;

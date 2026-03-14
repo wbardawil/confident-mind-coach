@@ -2,15 +2,13 @@
 
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
+import { utcDaysAgo } from "@/lib/utils/date";
 
 export async function getDashboardData() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  // Helper: 14 days ago at midnight
-  const fourteenDaysAgo = new Date();
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-  fourteenDaysAgo.setHours(0, 0, 0, 0);
+  const fourteenDaysAgo = utcDaysAgo(14);
 
   const [
     recentSessions,
@@ -75,7 +73,7 @@ export async function getDashboardData() {
   ]);
 
   return {
-    userName: user.profile?.role ?? "there",
+    userName: user.name ?? user.profile?.role ?? "there",
     recentSessions,
     confidenceScore: ledgerBalance._sum.scoreDelta ?? 0,
     net14d: net14dAggregate._sum.scoreDelta ?? 0,

@@ -22,7 +22,12 @@
       "Bash(npx vitest run)",
       "Bash(node -e \":*)",
       "Bash(npx vitest run __tests__/utils/distress-detect.test.ts)",
-      "Bash(ls -la \"C:\\\\Users\\\\Dell\\\\projects\\\\confident-mind-coach\\\\__tests__\\\\actions\"\" 2>&1 || echo \"Directory does not exist \")"
+      "Bash(ls -la \"C:\\\\Users\\\\Dell\\\\projects\\\\confident-mind-coach\\\\__tests__\\\\actions\"\" 2>&1 || echo \"Directory does not exist \")",
+      "Bash(npx vitest:*)",
+      "Bash(ls C:/Users/Dell/projects/confident-mind-coach/*.md)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(npx prisma:*)",
+      "Bash(tasklist)"
     ]
   }
 }

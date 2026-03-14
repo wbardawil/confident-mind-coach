@@ -3,6 +3,7 @@
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
 import { LEDGER_TYPES } from "@/lib/utils/constants";
+import { utcDaysAgo, toUTCDateKey } from "@/lib/utils/date";
 
 export interface LedgerSummary {
   totalScore: number;
@@ -49,7 +50,7 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
       db.ledgerEntry.aggregate({
         where: {
           userId: user.id,
-          createdAt: { gte: daysAgo(14) },
+          createdAt: { gte: utcDaysAgo(14) },
         },
         _sum: { scoreDelta: true },
       }),
@@ -74,7 +75,7 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
       db.ledgerEntry.findMany({
         where: {
           userId: user.id,
-          createdAt: { gte: daysAgo(14) },
+          createdAt: { gte: utcDaysAgo(14) },
         },
         orderBy: { createdAt: "asc" },
         select: {
@@ -84,10 +85,10 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
       }),
     ]);
 
-  // Build daily trend: group by date, compute running cumulative
+  // Build daily trend: group by UTC date, compute running cumulative
   const dailyMap = new Map<string, number>();
   for (const entry of trendEntries) {
-    const day = entry.createdAt.toISOString().slice(0, 10);
+    const day = toUTCDateKey(entry.createdAt);
     dailyMap.set(day, (dailyMap.get(day) ?? 0) + (entry.scoreDelta ?? 0));
   }
 
@@ -98,16 +99,14 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
   const preWindowAggregate = await db.ledgerEntry.aggregate({
     where: {
       userId: user.id,
-      createdAt: { lt: daysAgo(14) },
+      createdAt: { lt: utcDaysAgo(14) },
     },
     _sum: { scoreDelta: true },
   });
   let running = preWindowAggregate._sum.scoreDelta ?? 0;
 
   for (let i = 13; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+    const key = toUTCDateKey(utcDaysAgo(i));
     running += dailyMap.get(key) ?? 0;
     trend.push({ date: key, cumulative: running });
   }
@@ -120,11 +119,4 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
     recentEntries,
     trend,
   };
-}
-
-function daysAgo(n: number): Date {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  d.setHours(0, 0, 0, 0);
-  return d;
 }

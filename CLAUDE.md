@@ -80,6 +80,8 @@ The Confidence Ledger system is now functional, including:
 - recovery tracking
 - 14-day confidence trend
 
+Settings allows editing of the coaching profile (role, domain, strengths, challenges, baseline score, display name). The `updateSettings` server action validates input with Zod and uses `db.profile.upsert` to safely create or update the profile. The User model includes an optional `name` field for display name.
+
 Stabilization work remains the priority before deployment.
 
 Do not build new product features until stabilization and testing are complete.
