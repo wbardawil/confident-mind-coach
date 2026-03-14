@@ -4,17 +4,17 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
-import { scanForCrisis } from "@/lib/safety/crisis-detect";
-import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { buildResetPrompt } from "@/lib/coaching/reset";
-import { generateCoaching } from "@/lib/ai/client";
 import { resetResponseSchema, type ResetResponse } from "@/lib/ai/schemas";
-import { parseAiResponse } from "@/lib/ai/parse";
 import { resetInputSchema, type ResetInput } from "@/lib/validators/reset";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
-import { friendlyAiError } from "@/lib/utils/errors";
 import { detectDistress } from "@/lib/utils/distress-detect";
 import { coerceToNumber } from "@/lib/utils/coerce";
+import {
+  runCoachingFlow,
+  type CoachingFlaggedResult,
+  type CoachingErrorResult,
+} from "@/lib/actions/run-coaching-flow";
 
 // ─── Return types ──────────────────────────────
 
@@ -23,124 +23,62 @@ interface ResetSuccessResult {
   data: ResetResponse;
 }
 
-interface ResetFlaggedResult {
-  success: false;
-  flagged: true;
-  escalation: typeof ESCALATION_MESSAGE;
-}
-
-interface ResetErrorResult {
-  success: false;
-  flagged?: false;
-  error: string;
-}
-
-export type ResetResult = ResetSuccessResult | ResetFlaggedResult | ResetErrorResult;
+export type ResetResult = ResetSuccessResult | CoachingFlaggedResult | CoachingErrorResult;
 
 // ─── Main action ───────────────────────────────
 
 export async function submitReset(data: ResetInput): Promise<ResetResult> {
-  // 1. Authenticate
-  const user = await getCurrentUser();
-  if (!user) return { success: false, error: "Not authenticated" };
-
-  // 2. Validate input (safely coerce confidenceScore in case it arrives as
-  //    string from the Server Action serialization boundary — Number("") and
-  //    Number("   ") silently return 0, so we use a safe coercion helper)
-  const coerced = {
-    ...data,
-    confidenceScore: coerceToNumber(data.confidenceScore),
-  };
-  const parsed = resetInputSchema.safeParse(coerced);
-  if (!parsed.success) return { success: false, error: "Please check your inputs and try again." };
-
-  const { eventDescription, emotionalState, confidenceScore } = parsed.data;
-
-  // 3. Safety scan
-  const safety = scanForCrisis([eventDescription, emotionalState]);
-
-  if (safety.flagged) {
-    await db.coachingSession.create({
-      data: {
-        userId: user.id,
-        mode: COACHING_MODES.RESET,
-        inputJson: { eventDescription, emotionalState, confidenceScore },
-        outputJson: Prisma.JsonNull,
-        flagged: true,
-        reason: safety.reason,
-      },
-    });
-
-    return { success: false, flagged: true, escalation: ESCALATION_MESSAGE };
-  }
-
-  // 4. Build prompt (with profile context)
-  const prompt = buildResetPrompt({
-    eventDescription,
-    emotionalState,
-    confidenceScore,
-    profile: user.profile
-      ? {
-          role: user.profile.role,
-          strengths: user.profile.strengths,
-        }
-      : null,
+  const outcome = await runCoachingFlow(data, {
+    mode: COACHING_MODES.RESET,
+    inputSchema: resetInputSchema,
+    responseSchema: resetResponseSchema,
+    coerce: (raw) => ({
+      ...raw,
+      confidenceScore: coerceToNumber(raw.confidenceScore),
+    }),
+    safetyFields: (input) => [input.eventDescription, input.emotionalState],
+    buildPrompt: (input, user) =>
+      buildResetPrompt({
+        eventDescription: input.eventDescription,
+        emotionalState: input.emotionalState,
+        confidenceScore: input.confidenceScore,
+        profile: user.profile
+          ? {
+              role: user.profile.role,
+              strengths: user.profile.strengths,
+            }
+          : null,
+      }),
   });
 
-  // 5. Call AI
-  let rawResponse: string;
-  try {
-    rawResponse = await generateCoaching(prompt);
-  } catch (e) {
-    return {
-      success: false,
-      error: friendlyAiError(e),
-    };
-  }
+  if (!outcome.ok) return outcome.result;
 
-  // 6. Parse + Zod validate
-  const aiResult = parseAiResponse(rawResponse, resetResponseSchema);
+  const { user, input, aiData } = outcome;
 
-  if (!aiResult.success) {
-    await db.coachingSession.create({
-      data: {
-        userId: user.id,
-        mode: COACHING_MODES.RESET,
-        inputJson: { eventDescription, emotionalState, confidenceScore },
-        outputJson: { raw: rawResponse },
-        flagged: false,
-        reason: `AI output validation failed: ${aiResult.error}`,
-      },
-    });
-    return { success: false, error: "AI returned an unexpected response format. Please try again." };
-  }
-
-  const aiData = aiResult.data;
-
-  // 7. Detect distress → optional withdrawal (text signals + confidence score)
+  // Detect distress → optional withdrawal (text signals + confidence score)
   const distress = detectDistress({
-    eventDescription,
-    emotionalState,
-    confidenceScore,
+    eventDescription: input.eventDescription,
+    emotionalState: input.emotionalState,
+    confidenceScore: input.confidenceScore,
   });
 
-  // 8. Persist CoachingSession + ledger entries as ONE atomic event.
+  // Persist CoachingSession + ledger entries as ONE atomic event.
   //
-  //    A successful Reset is a single product concept: "I did a Reset, here
-  //    is the coaching I received, and here is its confidence impact."  If any
-  //    write fails, the entire event should roll back so the user can retry
-  //    cleanly without orphaned sessions or half-state ledger entries.
+  // A successful Reset is a single product concept: "I did a Reset, here
+  // is the coaching I received, and here is its confidence impact."  If any
+  // write fails, the entire event should roll back so the user can retry
+  // cleanly without orphaned sessions or half-state ledger entries.
   //
-  //    Note: the *flagged* and *AI-parse-failure* CoachingSession writes
-  //    (steps 3 and 6 above) intentionally stay outside any transaction —
-  //    they are error-path logs, not part of a successful Reset event.
+  // Note: the *flagged* and *AI-parse-failure* CoachingSession writes
+  // are handled by runCoachingFlow and intentionally stay outside this
+  // transaction — they are error-path logs, not part of a successful event.
   const persistOps: Prisma.PrismaPromise<unknown>[] = [
     db.coachingSession.create({
       data: {
         userId: user.id,
         mode: COACHING_MODES.RESET,
-        inputJson: { eventDescription, emotionalState, confidenceScore },
-        outputJson: aiData,
+        inputJson: input as unknown as Prisma.InputJsonValue,
+        outputJson: aiData as unknown as Prisma.InputJsonValue,
         flagged: false,
       },
     }),
@@ -168,7 +106,7 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
         userId: user.id,
         type: LEDGER_TYPES.DEPOSIT,
         title: "Reset Recovery",
-        description: `Reset after: ${eventDescription.slice(0, 80)}`,
+        description: `Reset after: ${input.eventDescription.slice(0, 80)}`,
         scoreDelta: 2,
         sourceType: LEDGER_SOURCE_TYPES.RESET,
       },
