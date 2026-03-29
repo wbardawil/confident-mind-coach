@@ -68,11 +68,17 @@ Completed:
 - Phase 4 Pregame and Reset
 - Phase 5 AAR and Dashboard
 
-The project is currently in Phase 6 (Stabilization) with initial Phase 7 insights implemented.
+The project has completed Phase 8 (Conversational Coach + Deployment).
 
-All 4 coaching flows (ESP, Pregame, Reset, AAR) share a common execution shell
+All 4 structured coaching flows (ESP, Pregame, Reset, AAR) share a common execution shell
 via `runCoachingFlow(...)` in `lib/actions/run-coaching-flow.ts`.
 Persistence is atomic (Prisma transactions) across all coaching flows.
+
+The conversational coach (`/coach`) provides free-form streaming chat powered by
+`streamCoaching()` in `lib/ai/client.ts`. The system prompt is built by
+`buildCoachSystemPrompt()` in `lib/coaching/coach.ts` using Dr. Nate Zinsser's methodology.
+Chat sessions persist via `ChatSession` and `ChatMessage` models. Crisis detection
+runs on every user message before AI processing.
 
 The Confidence Ledger system is now functional, including:
 - deposits
@@ -82,6 +88,15 @@ The Confidence Ledger system is now functional, including:
 
 Settings allows editing of the coaching profile (role, domain, strengths, challenges, baseline score, display name). The `updateSettings` server action validates input with Zod and uses `db.profile.upsert` to safely create or update the profile. The User model includes an optional `name` field for display name.
 
-Stabilization work remains the priority before deployment.
+## Deployment
 
-Do not build new product features until stabilization and testing are complete.
+The app is deployed to Vercel at https://confident-mind-coach.vercel.app.
+- Production branch: `main`
+- Database: Neon PostgreSQL (us-east-1)
+- Build: `prisma generate && next build`
+- Auth: Clerk in dev fallback mode (placeholder keys, shared dev user)
+- AI: Anthropic API (claude-haiku-4-5-20251001)
+
+Auth note: Clerk development instances don't support provider domains (vercel.app).
+A custom domain is needed to enable Clerk production auth with per-user accounts.
+Until then, all users share a single dev user account.

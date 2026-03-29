@@ -42,6 +42,18 @@ Completed:
   - All coaching flows verified: auth, validation, safety, transactions
   - Settings isolation confirmed (no ledger/session side effects)
 
+✓ Phase 8 — Conversational Coach + Deployment
+  - Free-form conversational coach via streaming chat (/coach)
+  - Anthropic SDK streaming (messages.stream) with SSE protocol
+  - Multi-turn conversation with persistent chat sessions
+  - Dr. Nate Zinsser methodology embedded in system prompt
+  - Profile + Top Ten achievements injected as coaching context
+  - Crisis detection on every message (escalation banner inline)
+  - ChatSession + ChatMessage models added to Prisma schema
+  - Coach added to navigation (sidebar, mobile nav, dashboard)
+  - Voice-dictation friendly (10k char input limit, auto-expanding textarea)
+  - Deployed to Vercel with Neon PostgreSQL
+
 Release Blockers:
   (none remaining)
 
@@ -51,8 +63,9 @@ TypeScript
 Tailwind CSS
 shadcn/ui
 Prisma
-PostgreSQL 16
-Anthropic API
+PostgreSQL 16 (Neon serverless in production)
+Anthropic API (claude-haiku-4-5-20251001)
+Clerk authentication (dev fallback mode, placeholder keys)
 
 Working Flows:
 - Landing page
@@ -66,12 +79,14 @@ Working Flows:
 - AAR (form + AI + persistence)
 - Confidence Ledger (summaries + trend + entries)
 - Settings (editable profile, display name, coaching config, sign out)
+- Coach (streaming conversational AI, multi-turn, crisis-safe)
 
 Implemented Agent Modes:
 - ESP ✅
 - Pregame ✅
 - Reset ✅
 - AAR ✅
+- Coach (conversational) ✅
 
 Memory tables:
 - User (name, email, clerkId)
@@ -84,12 +99,34 @@ Memory tables:
 - LedgerEntry
 - Affirmation
 - Event
+- ChatSession (conversational coach sessions)
+- ChatMessage (user + assistant messages, flagged support)
 
 Database State:
 - Prisma schema synced
-- Database pushed via prisma db push
+- Local: PostgreSQL via Docker (port 5433)
+- Production: Neon PostgreSQL (us-east-1)
+- Schema pushed to both environments via prisma db push
+
+Deployment:
+- Platform: Vercel (Hobby plan)
+- URL: https://confident-mind-coach.vercel.app
+- Production branch: main
+- Database: Neon PostgreSQL (project: confident-mind-coach)
+- Build command: prisma generate && next build
+- Auth: Clerk in dev fallback mode (placeholder keys bypass auth)
+- Environment variables configured in Vercel dashboard:
+  - DATABASE_URL (Neon connection string)
+  - ANTHROPIC_API_KEY
+  - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (placeholder)
+  - CLERK_SECRET_KEY (placeholder)
 
 Environment:
-- Clerk running in dev fallback mode
+- Clerk running in dev fallback mode (shared dev user)
 - Anthropic API key configured
-- Environment validation enforced at startup (check-env.ts)
+- Neon PostgreSQL connected in production
+
+Future:
+- Clerk production auth (requires custom domain)
+- Family feature (parent/child accounts with separate access)
+- Per-user data isolation (currently shared dev user)
