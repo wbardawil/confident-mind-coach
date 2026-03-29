@@ -14,18 +14,10 @@ import {
   Settings,
   Zap,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { APP_NAME, ROUTES } from "@/lib/utils/constants";
 import { Separator } from "@/components/ui/separator";
-
-const clerkPk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
-const isClerkReady =
-  clerkPk.startsWith("pk_") && !clerkPk.includes("...") && !clerkPk.includes("placeholder") && clerkPk.length > 30;
-
-const ClerkUserButton = isClerkReady
-  ? dynamic(() => import("@clerk/nextjs").then((mod) => mod.UserButton))
-  : null;
+import { ClerkLoaded } from "@/components/providers/clerk-loaded";
 
 const navItems = [
   { href: ROUTES.DASHBOARD, label: "Dashboard", icon: LayoutDashboard },
@@ -90,11 +82,13 @@ export function Sidebar() {
           <Settings className="h-4 w-4" />
           Settings
         </Link>
-        {ClerkUserButton && (
-          <div className="px-3">
-            <ClerkUserButton afterSignOutUrl="/" />
-          </div>
-        )}
+        <ClerkLoaded>
+          {(UserButton) => (
+            <div className="px-3">
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          )}
+        </ClerkLoaded>
       </div>
     </aside>
   );

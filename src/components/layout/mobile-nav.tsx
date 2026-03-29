@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import dynamic from "next/dynamic";
 import { Menu, Zap } from "lucide-react";
 import {
   LayoutDashboard,
@@ -16,14 +15,8 @@ import {
   Settings,
 } from "lucide-react";
 
-const clerkPk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
-const isClerkReady =
-  clerkPk.startsWith("pk_") && !clerkPk.includes("...") && !clerkPk.includes("placeholder") && clerkPk.length > 30;
-
-const ClerkUserButton = isClerkReady
-  ? dynamic(() => import("@clerk/nextjs").then((mod) => mod.UserButton))
-  : null;
 import { cn } from "@/lib/utils";
+import { ClerkLoaded } from "@/components/providers/clerk-loaded";
 import { APP_NAME, ROUTES } from "@/lib/utils/constants";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -57,7 +50,9 @@ export function MobileNav() {
       </div>
 
       <div className="flex items-center gap-3">
-        {ClerkUserButton && <ClerkUserButton afterSignOutUrl="/" />}
+        <ClerkLoaded>
+          {(UserButton) => <UserButton afterSignOutUrl="/" />}
+        </ClerkLoaded>
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
