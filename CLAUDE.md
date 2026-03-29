@@ -94,9 +94,8 @@ The app is deployed to Vercel at https://confident-mind-coach.vercel.app.
 - Production branch: `main`
 - Database: Neon PostgreSQL (us-east-1)
 - Build: `prisma generate && next build`
-- Auth: Clerk in dev fallback mode (placeholder keys, shared dev user)
+- Auth: Clerk development instance (per-user accounts via Google/email sign-up)
 - AI: Anthropic API (claude-haiku-4-5-20251001)
 
-Auth note: Clerk development instances don't support provider domains (vercel.app).
-A custom domain is needed to enable Clerk production auth with per-user accounts.
-Until then, all users share a single dev user account.
+Auth note: Clerk is running in development mode. Each user gets their own account
+and data. A custom domain + Clerk production instance is needed for production-grade auth.
