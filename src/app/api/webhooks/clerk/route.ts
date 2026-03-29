@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 // Full implementation will be added in Phase 2 when user creation flow is built.
 // This stub ensures the route exists and returns 200 for webhook verification.
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(_req: Request) {
-  const _headers = headers();
-  void _headers;
+  void headers();
 
   // TODO: Verify webhook signature with Clerk
   // TODO: Handle user.created and user.updated events
