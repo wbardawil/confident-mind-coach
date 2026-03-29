@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const clerkPk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const isClerkReady =
-  clerkPk.startsWith("pk_") && !clerkPk.includes("...");
+  clerkPk.startsWith("pk_") && !clerkPk.includes("...") && !clerkPk.includes("placeholder") && clerkPk.length > 30;
 
 const ClerkSignOutButton = isClerkReady
   ? dynamic(() => import("@clerk/nextjs").then((mod) => mod.SignOutButton))
