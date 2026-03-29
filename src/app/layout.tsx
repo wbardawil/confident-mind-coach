@@ -11,7 +11,7 @@ let ClerkProviderSafe: any = ({ children }: { children: ReactNode }) => children
 // Only enable Clerk if a real key exists
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-if (publishableKey && !publishableKey.includes("...")) {
+if (publishableKey && !publishableKey.includes("...") && !publishableKey.includes("placeholder") && publishableKey.length > 30) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const clerk = require("@clerk/nextjs");
