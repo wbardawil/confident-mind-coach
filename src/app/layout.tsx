@@ -2,22 +2,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
+import { AuthProvider } from "@/components/providers/auth-provider";
 
 const inter = Inter({ subsets: ["latin"] });
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let ClerkProviderSafe: any = ({ children }: { children: ReactNode }) => children;
-
-// Only enable Clerk if a real key exists
-const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-if (publishableKey && !publishableKey.includes("...") && !publishableKey.includes("placeholder") && publishableKey.length > 30) {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const clerk = require("@clerk/nextjs");
-    ClerkProviderSafe = clerk.ClerkProvider;
-  } catch {}
-}
 
 export const metadata: Metadata = {
   title: "The Confident Mind Coach",
@@ -33,9 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        <ClerkProviderSafe>
+        <AuthProvider>
           {children}
-        </ClerkProviderSafe>
+        </AuthProvider>
       </body>
     </html>
   );
