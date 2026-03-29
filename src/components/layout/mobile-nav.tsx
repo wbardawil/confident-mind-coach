@@ -18,7 +18,7 @@ import {
 
 const clerkPk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const isClerkReady =
-  clerkPk.startsWith("pk_") && !clerkPk.includes("...");
+  clerkPk.startsWith("pk_") && !clerkPk.includes("...") && !clerkPk.includes("placeholder") && clerkPk.length > 30;
 
 const ClerkUserButton = isClerkReady
   ? dynamic(() => import("@clerk/nextjs").then((mod) => mod.UserButton))
