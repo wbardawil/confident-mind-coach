@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 type GenerateCoachingArgs = {
   systemPrompt: string;
@@ -12,11 +14,41 @@ export type CoachingRequest = GenerateCoachingArgs;
 /** Request timeout in milliseconds. */
 const REQUEST_TIMEOUT_MS = 15_000;
 
-const apiKey = process.env.ANTHROPIC_API_KEY;
+let _anthropic: Anthropic | null = null;
 
-const anthropic = apiKey
-  ? new Anthropic({ apiKey, timeout: REQUEST_TIMEOUT_MS })
-  : null;
+/**
+ * Read the API key from .env / .env.local files directly.
+ * This avoids Next.js webpack inlining process.env at compile time.
+ */
+function loadApiKey(): string | undefined {
+  // First try process.env (works in production / Server Actions)
+  const envKey = process.env["ANTHROPIC_API_KEY"];
+  if (envKey) return envKey;
+
+  // Fallback: read from .env files directly (Route Handler workaround)
+  for (const file of [".env.local", ".env"]) {
+    try {
+      const content = readFileSync(join(process.cwd(), file), "utf-8");
+      const match = content.match(/^ANTHROPIC_API_KEY=(.+)$/m);
+      if (match?.[1]) return match[1].trim();
+    } catch {
+      // file doesn't exist, try next
+    }
+  }
+  return undefined;
+}
+
+function getClient(): Anthropic {
+  if (_anthropic) return _anthropic;
+  const apiKey = loadApiKey();
+  if (!apiKey) {
+    throw new Error(
+      "ANTHROPIC_API_KEY is not set. Add it to .env.local and restart the dev server.",
+    );
+  }
+  _anthropic = new Anthropic({ apiKey, timeout: REQUEST_TIMEOUT_MS });
+  return _anthropic;
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -42,11 +74,9 @@ async function callAnthropicOnce({
   maxTokens = 500,
   temperature = 0.4,
 }: GenerateCoachingArgs): Promise<string> {
-  if (!anthropic) {
-    throw new Error("ANTHROPIC_API_KEY is not configured. Add a valid key to .env.local.");
-  }
+  const client = getClient();
 
-  const response = await anthropic.messages.create({
+  const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: maxTokens,
     temperature,
@@ -120,11 +150,9 @@ export function streamCoaching({
   maxTokens = 1024,
   temperature = 0.6,
 }: StreamCoachingArgs) {
-  if (!anthropic) {
-    throw new Error("ANTHROPIC_API_KEY is not configured. Add a valid key to .env.local.");
-  }
+  const client = getClient();
 
-  return anthropic.messages.stream({
+  return client.messages.stream({
     model: "claude-haiku-4-5-20251001",
     max_tokens: maxTokens,
     temperature,

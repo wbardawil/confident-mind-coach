@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 import { streamCoaching } from "@/lib/ai/client";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
 import { scanForCrisis } from "@/lib/safety/crisis-detect";

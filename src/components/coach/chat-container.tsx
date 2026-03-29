@@ -70,7 +70,10 @@ export function ChatContainer({
         const res = await fetch("/api/coach", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, sessionId }),
+          body: JSON.stringify({
+            message: text,
+            ...(sessionId ? { sessionId } : {}),
+          }),
         });
 
         // Check for flagged (non-streaming JSON response)
