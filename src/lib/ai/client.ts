@@ -103,6 +103,36 @@ function logAiError(error: unknown, attempt: number, maxAttempts: number): void 
   );
 }
 
+type StreamCoachingArgs = {
+  systemPrompt: string;
+  messages: Array<{ role: "user" | "assistant"; content: string }>;
+  maxTokens?: number;
+  temperature?: number;
+};
+
+/**
+ * Stream a multi-turn coaching conversation.
+ * Returns the Anthropic MessageStream — caller consumes text deltas.
+ */
+export function streamCoaching({
+  systemPrompt,
+  messages,
+  maxTokens = 1024,
+  temperature = 0.6,
+}: StreamCoachingArgs) {
+  if (!anthropic) {
+    throw new Error("ANTHROPIC_API_KEY is not configured. Add a valid key to .env.local.");
+  }
+
+  return anthropic.messages.stream({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: maxTokens,
+    temperature,
+    system: systemPrompt,
+    messages,
+  });
+}
+
 export async function generateCoaching(args: GenerateCoachingArgs): Promise<string> {
   const attempts = 3;
   let lastError: unknown;

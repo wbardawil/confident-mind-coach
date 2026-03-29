@@ -10,6 +10,7 @@ import {
   RotateCcw,
   ClipboardList,
   BookOpen,
+  MessageCircle,
   Settings,
   Zap,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const ClerkUserButton = isClerkReady
 
 const navItems = [
   { href: ROUTES.DASHBOARD, label: "Dashboard", icon: LayoutDashboard },
+  { href: ROUTES.COACH, label: "Coach", icon: MessageCircle },
   { href: ROUTES.DAILY_ESP, label: "Daily ESP", icon: Sun },
   { href: ROUTES.TOP_TEN, label: "Top Ten", icon: Trophy },
   { href: ROUTES.PREGAME, label: "Pregame", icon: Target },

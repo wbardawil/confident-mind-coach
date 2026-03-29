@@ -11,6 +11,7 @@ export const ROUTES = {
   PREGAME: "/pregame",
   RESET: "/reset",
   AAR: "/aar",
+  COACH: "/coach",
   LEDGER: "/ledger",
   SETTINGS: "/settings",
 } as const;
@@ -23,6 +24,7 @@ export const COACHING_MODES = {
   PREGAME: "PREGAME",
   RESET: "RESET",
   AAR: "AAR",
+  COACH: "COACH",
 } as const;
 
 export const LEDGER_TYPES = {
@@ -37,5 +39,6 @@ export const LEDGER_SOURCE_TYPES = {
   RESET: "RESET",
   AAR: "AAR",
   TOP_TEN: "TOP_TEN",
+  COACH: "COACH",
   MANUAL: "MANUAL",
 } as const;

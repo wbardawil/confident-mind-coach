@@ -13,6 +13,7 @@ import {
   Sun,
   Target,
   ClipboardList,
+  MessageCircle,
   TrendingUp,
   TrendingDown,
   Sparkles,
@@ -46,6 +47,20 @@ export default async function DashboardPage() {
 
       {/* ── Quick nav ────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Link href={ROUTES.COACH}>
+          <Card className="border-primary transition-colors hover:border-primary/80">
+            <CardHeader className="flex flex-row items-center gap-3 pb-2">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <CardTitle className="text-sm font-medium">Coach</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Talk with your confidence coach.
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link href={ROUTES.DAILY_ESP}>
           <Card className="transition-colors hover:border-primary">
             <CardHeader className="flex flex-row items-center gap-3 pb-2">
