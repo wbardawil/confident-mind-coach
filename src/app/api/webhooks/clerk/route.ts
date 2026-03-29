@@ -5,8 +5,9 @@ import { NextResponse } from "next/server";
 // Full implementation will be added in Phase 2 when user creation flow is built.
 // This stub ensures the route exists and returns 200 for webhook verification.
 
-export async function POST(req: Request) {
-  const _headersList = headers();
+export async function POST(_req: Request) {
+  const _headers = headers();
+  void _headers;
 
   // TODO: Verify webhook signature with Clerk
   // TODO: Handle user.created and user.updated events

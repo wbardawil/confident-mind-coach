@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let ClerkProviderSafe: any = ({ children }: { children: ReactNode }) => children;
 
 // Only enable Clerk if a real key exists
@@ -12,6 +13,7 @@ const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 if (publishableKey && !publishableKey.includes("...")) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const clerk = require("@clerk/nextjs");
     ClerkProviderSafe = clerk.ClerkProvider;
   } catch {}
