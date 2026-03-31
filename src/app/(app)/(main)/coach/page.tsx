@@ -1,6 +1,13 @@
 import { ChatContainer } from "@/components/coach/chat-container";
+import { Badge } from "@/components/ui/badge";
 import { getCurrentUser } from "@/lib/utils/user";
 import { db } from "@/lib/utils/db";
+
+const MODEL_LABELS: Record<string, string> = {
+  haiku: "Haiku",
+  sonnet: "Sonnet",
+  opus: "Opus",
+};
 
 interface CoachPageProps {
   searchParams: { new?: string };
@@ -15,30 +22,35 @@ export default async function CoachPage({ searchParams }: CoachPageProps) {
     content: string;
   }> = [];
   let initialSessionId: string | null = null;
+  let coachModel = "haiku";
 
   try {
     const user = await getCurrentUser();
-    if (user && !startFresh) {
-      // Load the most recent chat session
-      const lastSession = await db.chatSession.findFirst({
-        where: { userId: user.id },
-        orderBy: { updatedAt: "desc" },
-        include: {
-          messages: {
-            orderBy: { createdAt: "asc" },
-            take: 50,
-            select: { id: true, role: true, content: true },
-          },
-        },
-      });
+    if (user) {
+      coachModel = user.profile?.coachModel ?? "haiku";
 
-      if (lastSession && lastSession.messages.length > 0) {
-        initialSessionId = lastSession.id;
-        initialMessages = lastSession.messages.map((m) => ({
-          id: m.id,
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        }));
+      if (!startFresh) {
+        // Load the most recent chat session
+        const lastSession = await db.chatSession.findFirst({
+          where: { userId: user.id },
+          orderBy: { updatedAt: "desc" },
+          include: {
+            messages: {
+              orderBy: { createdAt: "asc" },
+              take: 50,
+              select: { id: true, role: true, content: true },
+            },
+          },
+        });
+
+        if (lastSession && lastSession.messages.length > 0) {
+          initialSessionId = lastSession.id;
+          initialMessages = lastSession.messages.map((m) => ({
+            id: m.id,
+            role: m.role as "user" | "assistant",
+            content: m.content,
+          }));
+        }
       }
     }
   } catch {
@@ -49,7 +61,12 @@ export default async function CoachPage({ searchParams }: CoachPageProps) {
     <div className="mx-auto max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Coach</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">Coach</h1>
+            <Badge variant="secondary" className="text-xs">
+              {MODEL_LABELS[coachModel] ?? coachModel}
+            </Badge>
+          </div>
           <p className="mt-2 text-muted-foreground">
             Talk through what&apos;s on your mind with your confidence coach.
           </p>
