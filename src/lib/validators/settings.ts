@@ -1,7 +1,14 @@
 import { z } from "zod";
 import { CONFIDENCE_MIN, CONFIDENCE_MAX } from "@/lib/utils/constants";
 
+export const COACH_MODEL_OPTIONS = [
+  { value: "haiku", label: "Haiku (Fast)", description: "Quick responses, best for daily check-ins" },
+  { value: "sonnet", label: "Sonnet (Balanced)", description: "Deeper reasoning, great for coaching conversations" },
+  { value: "opus", label: "Opus (Most Capable)", description: "Deepest insights, best for complex coaching" },
+] as const;
+
 export const settingsInputSchema = z.object({
+  coachModel: z.enum(["haiku", "sonnet", "opus"]),
   displayName: z
     .string()
     .trim()
