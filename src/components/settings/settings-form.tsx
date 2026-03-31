@@ -22,6 +22,7 @@ import {
 } from "@/lib/actions/settings";
 import {
   settingsInputSchema,
+  COACH_MODEL_OPTIONS,
   type SettingsInput,
 } from "@/lib/validators/settings";
 
@@ -53,6 +54,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     resolver: zodResolver(settingsInputSchema),
     defaultValues: {
       displayName: settings.displayName ?? "",
+      coachModel: (settings.coachModel as "haiku" | "sonnet" | "opus") ?? "haiku",
       role: settings.role ?? "",
       performanceDomain: settings.performanceDomain ?? "",
       baselineScore: settings.baselineScore ?? 5,
@@ -125,6 +127,46 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 })}
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Coach model selection */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base">Coach Model</CardTitle>
+            <CardDescription>
+              Choose the AI model that powers your coaching conversations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {COACH_MODEL_OPTIONS.map((option) => (
+                <label
+                  key={option.value}
+                  className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 ${
+                    register("coachModel").name ? "" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value={option.value}
+                    {...register("coachModel")}
+                    className="mt-1"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">{option.label}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {option.description}
+                    </p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {errors.coachModel && (
+              <p className="text-sm text-destructive mt-2">
+                {errors.coachModel.message}
+              </p>
+            )}
           </CardContent>
         </Card>
 

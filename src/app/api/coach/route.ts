@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-import { streamCoaching } from "@/lib/ai/client";
+import { streamCoaching, resolveCoachModel } from "@/lib/ai/client";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
 import { getCoachingMemory } from "@/lib/coaching/memory";
 import { scanForCrisis } from "@/lib/safety/crisis-detect";
@@ -110,8 +110,9 @@ export async function POST(req: NextRequest) {
 
   const messages = buildChatMessages(history);
 
-  // 8. Stream the response
-  const stream = streamCoaching({ systemPrompt, messages });
+  // 8. Stream the response using the user's preferred model
+  const coachModel = resolveCoachModel(profile?.coachModel);
+  const stream = streamCoaching({ systemPrompt, messages, model: coachModel });
 
   // 9. Build a ReadableStream that forwards text deltas and persists the result
   const encoder = new TextEncoder();

@@ -12,15 +12,25 @@ type GenerateCoachingArgs = {
 export type CoachingRequest = GenerateCoachingArgs;
 
 /** Request timeout in milliseconds. */
-const REQUEST_TIMEOUT_MS = 15_000;
+const REQUEST_TIMEOUT_MS = 30_000;
 
-/** Model routing: fast model for structured JSON flows, smart model for coaching conversations. */
-const MODELS = {
-  /** Used for structured flows (ESP, Pregame, Reset, AAR) — fast, formulaic JSON output. */
-  structured: "claude-haiku-4-5-20251001",
-  /** Used for conversational coaching — deeper reasoning, emotional intelligence. */
-  conversational: "claude-haiku-4-5-20251001",
-} as const;
+/** Model used for structured JSON flows (ESP, Pregame, Reset, AAR). */
+const STRUCTURED_MODEL = "claude-haiku-4-5-20251001";
+
+/**
+ * Map user preference to Anthropic model IDs for conversational coaching.
+ * Users select their preferred coach model in Settings.
+ */
+const COACH_MODELS: Record<string, string> = {
+  haiku: "claude-haiku-4-5-20251001",
+  sonnet: "claude-sonnet-4-5-20241022",
+  opus: "claude-opus-4-20250514",
+};
+
+/** Resolve the user's model preference to an Anthropic model ID. */
+export function resolveCoachModel(preference?: string | null): string {
+  return COACH_MODELS[preference ?? "haiku"] ?? COACH_MODELS.haiku;
+}
 
 let _anthropic: Anthropic | null = null;
 
@@ -85,7 +95,7 @@ async function callAnthropicOnce({
   const client = getClient();
 
   const response = await client.messages.create({
-    model: MODELS.structured,
+    model: STRUCTURED_MODEL,
     max_tokens: maxTokens,
     temperature,
     system: systemPrompt,
@@ -144,6 +154,8 @@ function logAiError(error: unknown, attempt: number, maxAttempts: number): void 
 type StreamCoachingArgs = {
   systemPrompt: string;
   messages: Array<{ role: "user" | "assistant"; content: string }>;
+  /** Anthropic model ID to use. Defaults to Haiku. */
+  model?: string;
   maxTokens?: number;
   temperature?: number;
 };
@@ -155,13 +167,14 @@ type StreamCoachingArgs = {
 export function streamCoaching({
   systemPrompt,
   messages,
+  model,
   maxTokens = 1024,
   temperature = 0.6,
 }: StreamCoachingArgs) {
   const client = getClient();
 
   return client.messages.stream({
-    model: MODELS.conversational,
+    model: model ?? COACH_MODELS.haiku,
     max_tokens: maxTokens,
     temperature,
     system: systemPrompt,
