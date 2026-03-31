@@ -45,24 +45,32 @@ vi.mock("@/lib/safety/crisis-detect", () => ({
   scanForCrisis: vi.fn().mockReturnValue({ flagged: false }),
 }));
 
+const { mockAiData } = vi.hoisted(() => ({
+  mockAiData: {
+    acknowledgement: "I hear you.",
+    safeguard: "Remember your strengths.",
+    nextActionCue: "Take a deep breath.",
+    withdrawalImpact: {
+      title: "Setback recorded",
+      description: "A moderate confidence dip",
+      scoreDelta: -2,
+    },
+    recoveryImpact: {
+      title: "Faced it head-on",
+      description: "Processed the setback constructively",
+      scoreDelta: 2,
+    },
+  },
+}));
+
 vi.mock("@/lib/ai/client", () => ({
-  generateCoaching: vi.fn().mockResolvedValue(
-    JSON.stringify({
-      acknowledgement: "I hear you.",
-      safeguard: "Remember your strengths.",
-      nextActionCue: "Take a deep breath.",
-    }),
-  ),
+  generateCoaching: vi.fn().mockResolvedValue(JSON.stringify(mockAiData)),
 }));
 
 vi.mock("@/lib/ai/parse", () => ({
   parseAiResponse: vi.fn().mockReturnValue({
     success: true,
-    data: {
-      acknowledgement: "I hear you.",
-      safeguard: "Remember your strengths.",
-      nextActionCue: "Take a deep breath.",
-    },
+    data: mockAiData,
   }),
 }));
 
@@ -125,22 +133,7 @@ describe("submitReset transaction atomicity", () => {
     // the transaction array.
     expect(mockCoachingSessionCreate).toHaveBeenCalledTimes(1);
 
-    // With no distress: transaction receives [session, deposit] = 2 ops
-    const txArg = mockTransaction.mock.calls[0][0];
-    expect(Array.isArray(txArg)).toBe(true);
-    expect(txArg).toHaveLength(2);
-  });
-
-  it("transaction has 3 ops when distress is detected (session + withdrawal + deposit)", async () => {
-    const result = await submitReset({
-      eventDescription: "I bombed the presentation",
-      emotionalState: "I panicked and froze",
-      confidenceScore: 1,
-    });
-
-    expect(result.success).toBe(true);
-    expect(mockTransaction).toHaveBeenCalledTimes(1);
-
+    // Always 3 ops: session + AI-assessed withdrawal + AI-assessed deposit
     const txArg = mockTransaction.mock.calls[0][0];
     expect(Array.isArray(txArg)).toBe(true);
     expect(txArg).toHaveLength(3);
@@ -207,13 +200,13 @@ describe("submitReset transaction atomicity", () => {
     const wd = (withdrawalCall![0] as { data: Record<string, unknown> }).data;
     expect(wd.type).toBe("WITHDRAWAL");
     expect(wd.sourceType).toBe("RESET");
-    expect(wd.title).toBe("Confidence Dip");
+    expect(wd.title).toBe("Setback recorded");
     expect(typeof wd.scoreDelta).toBe("number");
     expect(wd.scoreDelta).toBeLessThan(0);
     expect(typeof wd.description).toBe("string");
   });
 
-  it("deposit entry uses correct constants and scoreDelta +2", async () => {
+  it("deposit entry uses AI-assessed title and score", async () => {
     await submitReset({
       eventDescription: "Lost the match",
       emotionalState: "Disappointed",
@@ -230,7 +223,7 @@ describe("submitReset transaction atomicity", () => {
     const dep = (depositCall![0] as { data: Record<string, unknown> }).data;
     expect(dep.type).toBe("DEPOSIT");
     expect(dep.sourceType).toBe("RESET");
-    expect(dep.title).toBe("Reset Recovery");
+    expect(dep.title).toBe("Faced it head-on");
     expect(dep.scoreDelta).toBe(2);
     expect(typeof dep.description).toBe("string");
   });

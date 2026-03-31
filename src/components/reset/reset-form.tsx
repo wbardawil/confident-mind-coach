@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Heart, ShieldCheck, ArrowRight } from "lucide-react";
+import { Heart, ShieldCheck, ArrowRight, TrendingDown, TrendingUp } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -183,6 +183,45 @@ export function ResetForm() {
               </p>
             </CardContent>
           </Card>
+
+          {/* Ledger impact */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Card className="border-red-500/20">
+              <CardHeader className="flex flex-row items-center gap-3 pb-2">
+                <TrendingDown className="h-5 w-5 text-red-500" />
+                <CardTitle className="text-base">Setback Impact</CardTitle>
+                <span className="ml-auto text-sm font-bold text-red-500">
+                  {result.data.withdrawalImpact.scoreDelta}
+                </span>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium">
+                  {result.data.withdrawalImpact.title}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {result.data.withdrawalImpact.description}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-500/20">
+              <CardHeader className="flex flex-row items-center gap-3 pb-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <CardTitle className="text-base">Recovery Deposit</CardTitle>
+                <span className="ml-auto text-sm font-bold text-green-600">
+                  +{result.data.recoveryImpact.scoreDelta}
+                </span>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium">
+                  {result.data.recoveryImpact.title}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {result.data.recoveryImpact.description}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
     </div>

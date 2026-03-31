@@ -40,6 +40,16 @@ export const resetResponseSchema = z.object({
   acknowledgement: z.string().min(1, "acknowledgement is required"),
   safeguard: z.string().min(1, "safeguard is required"),
   nextActionCue: z.string().min(1, "nextActionCue is required"),
+  withdrawalImpact: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    scoreDelta: z.number().int().min(-5).max(-1),
+  }),
+  recoveryImpact: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    scoreDelta: z.number().int().min(1).max(3),
+  }),
 });
 
 export type ResetResponse = z.infer<typeof resetResponseSchema>;

@@ -79,6 +79,16 @@ describe("resetResponseSchema", () => {
       acknowledgement: "That sounds difficult.",
       safeguard: "Remember your strengths.",
       nextActionCue: "Take a five-minute walk.",
+      withdrawalImpact: {
+        title: "Lost client",
+        description: "Major client walked away",
+        scoreDelta: -3,
+      },
+      recoveryImpact: {
+        title: "Faced it head-on",
+        description: "Processed the setback constructively",
+        scoreDelta: 2,
+      },
     });
     expect(result.success).toBe(true);
   });
@@ -88,6 +98,8 @@ describe("resetResponseSchema", () => {
       acknowledgement: "",
       safeguard: "S",
       nextActionCue: "N",
+      withdrawalImpact: { title: "T", description: "D", scoreDelta: -1 },
+      recoveryImpact: { title: "T", description: "D", scoreDelta: 1 },
     });
     expect(result.success).toBe(false);
   });
