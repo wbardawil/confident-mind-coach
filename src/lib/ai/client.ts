@@ -23,8 +23,8 @@ const STRUCTURED_MODEL = "claude-haiku-4-5-20251001";
  */
 const COACH_MODELS: Record<string, string> = {
   haiku: "claude-haiku-4-5-20251001",
-  sonnet: "claude-sonnet-4-5-20241022",
-  opus: "claude-opus-4-20250514",
+  sonnet: "claude-3-5-sonnet-latest",
+  opus: "claude-3-opus-latest",
 };
 
 /** Resolve the user's model preference to an Anthropic model ID. */
