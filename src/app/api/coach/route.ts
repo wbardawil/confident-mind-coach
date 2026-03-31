@@ -111,8 +111,9 @@ export async function POST(req: NextRequest) {
   const messages = buildChatMessages(history);
 
   // 8. Stream the response using the user's preferred model
-  const coachModel = await resolveCoachModel(profile?.coachModel);
-  const resolvedLabel = getModelLabel(coachModel);
+  const modelPreference = profile?.coachModel ?? null;
+  const coachModel = await resolveCoachModel(modelPreference);
+  const resolvedLabel = getModelLabel(modelPreference);
   const stream = streamCoaching({ systemPrompt, messages, model: coachModel });
 
   // 9. Build a ReadableStream that forwards text deltas and persists the result

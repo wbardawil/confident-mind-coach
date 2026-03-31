@@ -4,9 +4,10 @@ import { getCurrentUser } from "@/lib/utils/user";
 import { db } from "@/lib/utils/db";
 
 const MODEL_LABELS: Record<string, string> = {
-  haiku: "Haiku",
-  sonnet: "Sonnet",
-  opus: "Opus",
+  "haiku-4.5": "Haiku 4.5",
+  "sonnet-3.5": "Sonnet 3.5",
+  "sonnet-4": "Sonnet 4",
+  "opus-3": "Opus 3",
 };
 
 interface CoachPageProps {
@@ -22,12 +23,12 @@ export default async function CoachPage({ searchParams }: CoachPageProps) {
     content: string;
   }> = [];
   let initialSessionId: string | null = null;
-  let coachModel = "haiku";
+  let coachModel = "haiku-4.5";
 
   try {
     const user = await getCurrentUser();
     if (user) {
-      coachModel = user.profile?.coachModel ?? "haiku";
+      coachModel = user.profile?.coachModel ?? "haiku-4.5";
 
       if (!startFresh) {
         // Load the most recent chat session

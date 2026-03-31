@@ -2,13 +2,14 @@ import { z } from "zod";
 import { CONFIDENCE_MIN, CONFIDENCE_MAX } from "@/lib/utils/constants";
 
 export const COACH_MODEL_OPTIONS = [
-  { value: "haiku", label: "Haiku (Fast)", description: "Quick responses, best for daily check-ins" },
-  { value: "sonnet", label: "Sonnet (Balanced)", description: "Deeper reasoning, great for coaching conversations" },
-  { value: "opus", label: "Opus (Most Capable)", description: "Deepest insights, best for complex coaching" },
+  { value: "haiku-4.5", label: "Haiku 4.5", description: "Fast responses, best for daily check-ins" },
+  { value: "sonnet-3.5", label: "Sonnet 3.5", description: "Solid reasoning, great for coaching conversations" },
+  { value: "sonnet-4", label: "Sonnet 4 (Recommended)", description: "Latest Sonnet — deeper reasoning, better memory synthesis" },
+  { value: "opus-3", label: "Opus 3", description: "Most capable — deepest insights for complex coaching" },
 ] as const;
 
 export const settingsInputSchema = z.object({
-  coachModel: z.enum(["haiku", "sonnet", "opus"]),
+  coachModel: z.enum(["haiku-4.5", "sonnet-3.5", "sonnet-4", "opus-3"]),
   displayName: z
     .string()
     .trim()
