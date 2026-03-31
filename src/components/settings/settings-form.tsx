@@ -54,7 +54,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     resolver: zodResolver(settingsInputSchema),
     defaultValues: {
       displayName: settings.displayName ?? "",
-      coachModel: (settings.coachModel as "haiku" | "sonnet" | "opus") ?? "haiku",
+      coachModel: (settings.coachModel as "haiku-4.5" | "sonnet-3.5" | "sonnet-4" | "opus-3") ?? "haiku-4.5",
       role: settings.role ?? "",
       performanceDomain: settings.performanceDomain ?? "",
       baselineScore: settings.baselineScore ?? 5,

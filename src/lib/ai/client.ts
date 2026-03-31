@@ -17,98 +17,32 @@ const REQUEST_TIMEOUT_MS = 30_000;
 /** Model used for structured JSON flows (ESP, Pregame, Reset, AAR). */
 const STRUCTURED_MODEL = "claude-haiku-4-5-20251001";
 
-/**
- * Model ID candidates for each tier, tried in order.
- * First one that works wins. Covers naming across API versions.
- * Can be overridden with env vars: COACH_MODEL_HAIKU, COACH_MODEL_SONNET, COACH_MODEL_OPUS
- */
-const MODEL_CANDIDATES: Record<string, string[]> = {
-  haiku: [
-    "claude-haiku-4-5-20251001",
-  ],
-  sonnet: [
-    "claude-sonnet-4-20250514",
-    "claude-sonnet-4-5-20241022",
-    "claude-3-5-sonnet-20241022",
-    "claude-3-5-sonnet-latest",
-  ],
-  opus: [
-    "claude-opus-4-20250514",
-    "claude-3-opus-20240229",
-    "claude-3-opus-latest",
-  ],
+/** Direct map from user setting to exact Anthropic model ID. */
+const COACH_MODELS: Record<string, string> = {
+  "haiku-4.5": "claude-haiku-4-5-20251001",
+  "sonnet-3.5": "claude-3-5-sonnet-20241022",
+  "sonnet-4": "claude-sonnet-4-20250514",
+  "opus-3": "claude-3-opus-20240229",
 };
 
-/** Cache of verified working model IDs so we only probe once. */
-const _verifiedModels: Record<string, string> = {};
+const DEFAULT_MODEL = "haiku-4.5";
 
-/**
- * Resolve the user's model preference to a working Anthropic model ID.
- * On first call for each tier, probes candidates to find one that works.
- * Falls back to Haiku if nothing else works.
- */
+/** Resolve the user's model preference to an Anthropic model ID. */
 export async function resolveCoachModel(preference?: string | null): Promise<string> {
-  const tier = preference ?? "haiku";
-
-  // Check env var override first
-  const envOverride = process.env[`COACH_MODEL_${tier.toUpperCase()}`];
-  if (envOverride) return envOverride;
-
-  // Return cached result if we already found a working model
-  if (_verifiedModels[tier]) return _verifiedModels[tier];
-
-  // Haiku is known to work — skip probing
-  if (tier === "haiku") {
-    _verifiedModels[tier] = MODEL_CANDIDATES.haiku[0];
-    return _verifiedModels[tier];
-  }
-
-  // Probe candidates with a minimal API call
-  const candidates = MODEL_CANDIDATES[tier] ?? MODEL_CANDIDATES.haiku;
-  const client = getClient();
-
-  for (const modelId of candidates) {
-    try {
-      await client.messages.create({
-        model: modelId,
-        max_tokens: 5,
-        messages: [{ role: "user", content: "hi" }],
-      });
-      // It worked — cache and return
-      _verifiedModels[tier] = modelId;
-      console.log(`[ai-client] Verified model for ${tier}: ${modelId}`);
-      return modelId;
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "";
-      if (msg.includes("not_found") || msg.includes("404")) {
-        console.log(`[ai-client] Model ${modelId} not available, trying next...`);
-        continue;
-      }
-      // Non-404 error (rate limit, auth, etc.) — model probably exists, just errored
-      _verifiedModels[tier] = modelId;
-      return modelId;
-    }
-  }
-
-  // Nothing worked — fall back to Haiku
-  console.warn(`[ai-client] No ${tier} model available, falling back to Haiku`);
-  _verifiedModels[tier] = MODEL_CANDIDATES.haiku[0];
-  return _verifiedModels[tier];
+  return COACH_MODELS[preference ?? DEFAULT_MODEL] ?? COACH_MODELS[DEFAULT_MODEL];
 }
 
-/** Synchronous version for cases where we already resolved. Returns cached or Haiku default. */
-export function resolveCoachModelSync(preference?: string | null): string {
-  const tier = preference ?? "haiku";
-  const envOverride = process.env[`COACH_MODEL_${tier.toUpperCase()}`];
-  if (envOverride) return envOverride;
-  return _verifiedModels[tier] ?? MODEL_CANDIDATES.haiku[0];
-}
+/** Display labels for each model option. */
+const MODEL_LABELS: Record<string, string> = {
+  "haiku-4.5": "Haiku 4.5",
+  "sonnet-3.5": "Sonnet 3.5",
+  "sonnet-4": "Sonnet 4",
+  "opus-3": "Opus 3",
+};
 
-/** Get the display label for a resolved model ID. */
-export function getModelLabel(modelId: string): string {
-  if (modelId.includes("opus")) return "Opus";
-  if (modelId.includes("sonnet")) return "Sonnet";
-  return "Haiku";
+/** Get the display label for a model preference key. */
+export function getModelLabel(preference?: string | null): string {
+  return MODEL_LABELS[preference ?? DEFAULT_MODEL] ?? preference ?? "Haiku 4.5";
 }
 
 let _anthropic: Anthropic | null = null;
@@ -253,7 +187,7 @@ export function streamCoaching({
   const client = getClient();
 
   return client.messages.stream({
-    model: model ?? MODEL_CANDIDATES.haiku[0],
+    model: model ?? COACH_MODELS[DEFAULT_MODEL],
     max_tokens: maxTokens,
     temperature,
     system: systemPrompt,

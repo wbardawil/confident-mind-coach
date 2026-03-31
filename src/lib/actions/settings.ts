@@ -43,7 +43,7 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     strengths: profile?.strengths ?? [],
     confidenceChallenges: profile?.confidenceChallenges ?? [],
     baselineScore: profile?.baselineScore ?? null,
-    coachModel: profile?.coachModel ?? "haiku",
+    coachModel: profile?.coachModel ?? "haiku-4.5",
     memberSince: user.createdAt,
   };
 }
