@@ -18,6 +18,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   profile          Profile?
+  documents        UserDocument[]
   achievements     Achievement[]
   affirmations     Affirmation[]
   events           Event[]
@@ -27,6 +28,21 @@ model User {
   ledgerEntries    LedgerEntry[]
   coachingSessions CoachingSession[]
   chatSessions     ChatSession[]
+}
+
+// ─── USER DOCUMENT (uploaded context files) ────
+
+model UserDocument {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName         String
+  fileType         String // pdf | docx | md | txt
+  fileSize         Int // bytes
+  category         String // resume | personality | assessment | notes | other
+  extractedContent String // text extracted from the uploaded file
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 // ─── PROFILE (onboarding data) ─────────────────

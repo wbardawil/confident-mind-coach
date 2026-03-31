@@ -1,16 +1,20 @@
 import type { CoachingRequest } from "@/lib/ai/client";
+import { getDocumentContext } from "@/lib/actions/documents";
 
 /**
  * ESP (Effort / Success / Progress) prompt builder.
  *
  * Builds a structured prompt that instructs the AI to return JSON matching
  * the espResponseSchema defined in lib/ai/schemas.ts.
+ * Enriched with uploaded document context for deeper personalisation.
  */
 
 interface EspPromptInput {
   effort: string;
   success: string;
   progress: string;
+  /** User ID for fetching uploaded document context. */
+  userId: string;
   /** User profile context to personalise the coaching. */
   profile: {
     role: string;
@@ -19,14 +23,20 @@ interface EspPromptInput {
   } | null;
 }
 
-export function buildEspPrompt(input: EspPromptInput): CoachingRequest {
+export async function buildEspPrompt(input: EspPromptInput): Promise<CoachingRequest> {
   const profileContext = input.profile
     ? `The user is a ${input.profile.role} in the domain of ${input.profile.performanceDomain}. Their strengths include: ${input.profile.strengths.join(", ")}.`
     : "No profile context available.";
 
+  // Fetch uploaded documents for richer coaching context
+  const documentContext = await getDocumentContext(input.userId);
+  const documentSection = documentContext
+    ? `\n\nThe user has uploaded the following documents to provide additional context about themselves:\n\n${documentContext}`
+    : "";
+
   const systemPrompt = `You are a mental performance coach focused on building confidence as a trainable skill. You are NOT a therapist. You do NOT diagnose mental illness or provide medical advice.
 
-${profileContext}
+${profileContext}${documentSection}
 
 The user has completed their daily ESP reflection (Effort, Success, Progress). Your job is to:
 

@@ -40,7 +40,7 @@ export interface CoachingFlowConfig<TInput, TOutput> {
   /** Extract the string fields that should be scanned for crisis content */
   safetyFields: (input: TInput) => string[];
   /** Build the AI prompt from validated input and user profile */
-  buildPrompt: (input: TInput, user: CurrentUser) => CoachingRequest;
+  buildPrompt: (input: TInput, user: CurrentUser) => CoachingRequest | Promise<CoachingRequest>;
 }
 
 // ─── Flow result ──────────────────────────────
@@ -117,7 +117,7 @@ export async function runCoachingFlow<TInput, TOutput>(
   }
 
   // 4. Build prompt + 5. Call AI
-  const prompt = config.buildPrompt(input, user);
+  const prompt = await config.buildPrompt(input, user);
 
   let rawResponse: string;
   try {

@@ -40,6 +40,7 @@ export async function submitEsp(data: EspInput): Promise<EspResult> {
         effort: input.effort,
         success: input.success,
         progress: input.progress,
+        userId: user.id,
         profile: user.profile
           ? {
               role: user.profile.role,
