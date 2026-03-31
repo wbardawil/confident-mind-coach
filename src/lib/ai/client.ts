@@ -14,6 +14,14 @@ export type CoachingRequest = GenerateCoachingArgs;
 /** Request timeout in milliseconds. */
 const REQUEST_TIMEOUT_MS = 15_000;
 
+/** Model routing: fast model for structured JSON flows, smart model for coaching conversations. */
+const MODELS = {
+  /** Used for structured flows (ESP, Pregame, Reset, AAR) — fast, formulaic JSON output. */
+  structured: "claude-haiku-4-5-20251001",
+  /** Used for conversational coaching — deeper reasoning, emotional intelligence. */
+  conversational: "claude-sonnet-4-5-20250514",
+} as const;
+
 let _anthropic: Anthropic | null = null;
 
 /**
@@ -77,7 +85,7 @@ async function callAnthropicOnce({
   const client = getClient();
 
   const response = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
+    model: MODELS.structured,
     max_tokens: maxTokens,
     temperature,
     system: systemPrompt,
@@ -153,7 +161,7 @@ export function streamCoaching({
   const client = getClient();
 
   return client.messages.stream({
-    model: "claude-haiku-4-5-20251001",
+    model: MODELS.conversational,
     max_tokens: maxTokens,
     temperature,
     system: systemPrompt,

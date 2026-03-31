@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 
 import { streamCoaching } from "@/lib/ai/client";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
+import { getCoachingMemory } from "@/lib/coaching/memory";
 import { scanForCrisis } from "@/lib/safety/crisis-detect";
 import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { db } from "@/lib/utils/db";
@@ -80,14 +81,17 @@ export async function POST(req: NextRequest) {
     select: { role: true, content: true },
   });
 
-  // 7. Build system prompt with profile + achievements
+  // 7. Build system prompt with profile + achievements + coaching memory
   const profile = user.profile;
-  const achievements = await db.achievement.findMany({
-    where: { userId: user.id },
-    orderBy: { rank: "asc" },
-    take: 10,
-    select: { title: true, description: true },
-  });
+  const [achievements, coachingMemory] = await Promise.all([
+    db.achievement.findMany({
+      where: { userId: user.id },
+      orderBy: { rank: "asc" },
+      take: 10,
+      select: { title: true, description: true },
+    }),
+    getCoachingMemory(user.id),
+  ]);
 
   const systemPrompt = buildCoachSystemPrompt(
     profile
@@ -101,6 +105,7 @@ export async function POST(req: NextRequest) {
         }
       : null,
     achievements,
+    coachingMemory,
   );
 
   const messages = buildChatMessages(history);

@@ -23,6 +23,7 @@ interface AchievementData {
 export function buildCoachSystemPrompt(
   profile: ProfileData | null,
   achievements: AchievementData[] = [],
+  coachingMemory: string = "",
 ): string {
   const profileBlock = profile
     ? `
@@ -43,6 +44,15 @@ export function buildCoachSystemPrompt(
 
 ${achievements.map((a, i) => `${i + 1}. **${a.title}** — ${a.description}`).join("\n")}`
       : "";
+
+  const memoryBlock = coachingMemory
+    ? `
+## Coaching history and context
+
+The following is a summary of this person's recent coaching activity, reflections, and uploaded documents. Use this to provide continuity across sessions — reference past conversations, track patterns, and build on previous breakthroughs. Do not repeat this information back verbatim; weave it naturally into your coaching.
+
+${coachingMemory}`
+    : "";
 
   return `You are a mental performance coach trained in Dr. Nate Zinsser's methodology from "The Confident Mind." You help people build, protect, and deploy confidence as a trainable skill.
 
@@ -75,6 +85,7 @@ ${achievements.map((a, i) => `${i + 1}. **${a.title}** — ${a.description}`).jo
 - Stay in the domain of mental performance coaching.
 ${profileBlock}
 ${achievementsBlock}
+${memoryBlock}
 
 Respond in natural conversational language. No JSON. No markdown headers. Just talk to them like a coach who knows them and believes in their capacity to grow.`;
 }
