@@ -99,7 +99,7 @@ export async function getCoachingMemory(userId: string): Promise<string> {
     });
 
     sections.push(
-      `## Recent coaching conversations (last ${pastChatSessions.length} sessions)\n\nUse these to maintain continuity — reference what was discussed, follow up on commitments the user made, and track how themes evolve over time.\n\n${sessionBlocks.join("\n\n---\n\n")}`,
+      `## Your past conversations with this person\n\n${sessionBlocks.join("\n\n---\n\n")}`,
     );
   }
 
@@ -179,47 +179,20 @@ function truncate(str: string, max: number): string {
 }
 
 /**
- * Summarize a chat session into its key elements:
- * - What the user brought up (concerns, goals, situations)
- * - Key coaching advice given
- * - Any commitments or action items the user stated
+ * Summarize a chat session preserving the actual conversation flow.
+ * Includes all user messages and key coach responses so the AI coach
+ * can recall what was actually discussed.
  */
 function summarizeSession(
   messages: Array<{ role: string; content: string }>,
 ): string {
-  const userMessages = messages
-    .filter((m) => m.role === "user")
-    .map((m) => m.content);
-  const coachMessages = messages
-    .filter((m) => m.role === "assistant")
-    .map((m) => m.content);
+  const lines: string[] = [];
 
-  const parts: string[] = [];
-
-  // User's key topics — take the first and last user message for context
-  if (userMessages.length > 0) {
-    const topics: string[] = [];
-    topics.push(truncate(userMessages[0], 300));
-    if (userMessages.length > 1) {
-      topics.push(truncate(userMessages[userMessages.length - 1], 300));
-    }
-    parts.push(`**What the user discussed:** ${topics.join(" → ")}`);
+  for (const m of messages) {
+    const label = m.role === "user" ? "User" : "Coach";
+    // Keep messages substantial — 600 chars each to preserve real content
+    lines.push(`**${label}:** ${truncate(m.content, 600)}`);
   }
 
-  // Coach's key advice — take the last coach response (most synthesized)
-  if (coachMessages.length > 0) {
-    const lastCoachMsg = coachMessages[coachMessages.length - 1];
-    parts.push(`**Key coaching given:** ${truncate(lastCoachMsg, 400)}`);
-  }
-
-  // Look for commitment language in user messages
-  const commitmentPatterns = /\b(i will|i('ll| am going to)|my plan is|i commit|i('m| am) going to|next step|action item|goal is)\b/i;
-  const commitments = userMessages
-    .filter((m) => commitmentPatterns.test(m))
-    .map((m) => truncate(m, 200));
-  if (commitments.length > 0) {
-    parts.push(`**User commitments:** ${commitments.join("; ")}`);
-  }
-
-  return parts.join("\n");
+  return lines.join("\n\n");
 }
