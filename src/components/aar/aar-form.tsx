@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BookOpen, Lightbulb } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EscalationBanner } from "@/components/shared/escalation-banner";
+import { GoalSelector } from "@/components/shared/goal-selector";
 import { submitAar, type AarResult } from "@/lib/actions/aar";
 import { aarInputSchema, type AarInput } from "@/lib/validators/aar";
 
@@ -25,6 +26,7 @@ export function AarForm() {
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<AarInput>({
@@ -33,6 +35,7 @@ export function AarForm() {
       whatHappened: "",
       soWhat: "",
       nowWhat: "",
+      goalId: "",
     },
   });
 
@@ -102,6 +105,17 @@ export function AarForm() {
                 </p>
               )}
             </div>
+
+            <Controller
+              name="goalId"
+              control={control}
+              render={({ field }) => (
+                <GoalSelector
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                />
+              )}
+            />
 
             {result && !result.success && !("flagged" in result && result.flagged) && (
               <p className="text-sm text-destructive">

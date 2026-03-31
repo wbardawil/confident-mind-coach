@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sparkles, BookOpen, TrendingUp } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EscalationBanner } from "@/components/shared/escalation-banner";
+import { GoalSelector } from "@/components/shared/goal-selector";
 import { submitEsp, type EspResult } from "@/lib/actions/esp";
 import { espInputSchema, type EspInput } from "@/lib/validators/esp";
 
@@ -26,11 +27,12 @@ export function EspForm() {
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<EspInput>({
     resolver: zodResolver(espInputSchema),
-    defaultValues: { effort: "", success: "", progress: "" },
+    defaultValues: { effort: "", success: "", progress: "", goalId: "" },
   });
 
   function onSubmit(data: EspInput) {
@@ -100,6 +102,17 @@ export function EspForm() {
                 </p>
               )}
             </div>
+
+            <Controller
+              name="goalId"
+              control={control}
+              render={({ field }) => (
+                <GoalSelector
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                />
+              )}
+            />
 
             {result && !result.success && !("flagged" in result && result.flagged) && (
               <p className="text-sm text-destructive">

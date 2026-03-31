@@ -1,7 +1,9 @@
 import { getGoals } from "@/lib/actions/goals";
 import { GoalCard } from "@/components/goals/goal-card";
 import { GoalForm } from "@/components/goals/goal-form";
+import { EfficacyCheckin } from "@/components/goals/efficacy-checkin";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Plus, Target } from "lucide-react";
 
 export default async function GoalsPage() {
@@ -48,6 +50,20 @@ export default async function GoalsPage() {
         </div>
       ) : (
         <div className="space-y-8">
+          {/* Weekly check-in */}
+          {activeGoals.length > 0 && (
+            <EfficacyCheckin
+              goals={activeGoals.map((g) => ({
+                id: g.id,
+                title: g.title,
+                category: g.category,
+                efficacyScore: g.efficacyScore,
+              }))}
+            />
+          )}
+
+          <Separator />
+
           {activeGoals.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">

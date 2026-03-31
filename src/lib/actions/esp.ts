@@ -95,6 +95,7 @@ export async function submitEsp(data: EspInput): Promise<EspResult> {
         scoreDelta: aiData.ledgerImpact.scoreDelta,
         sourceId: espEntry.id,
         sourceType: LEDGER_SOURCE_TYPES.ESP,
+        goalId: input.goalId || null,
       },
     });
   });

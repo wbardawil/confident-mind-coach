@@ -94,6 +94,7 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
           description: `Setback signals: ${distress.matchedSignals.join(", ")}`,
           scoreDelta: distress.withdrawalScore,
           sourceType: LEDGER_SOURCE_TYPES.RESET,
+          goalId: input.goalId || null,
         },
       }),
     );
@@ -109,6 +110,7 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
         description: `Reset after: ${input.eventDescription.slice(0, 80)}`,
         scoreDelta: 2,
         sourceType: LEDGER_SOURCE_TYPES.RESET,
+        goalId: input.goalId || null,
       },
     }),
   );
