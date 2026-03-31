@@ -74,6 +74,7 @@ export async function submitPregame(data: PregameInput): Promise<PregameResult> 
         description: `Prepared for: ${input.upcomingEvent}`,
         scoreDelta: 2,
         sourceType: LEDGER_SOURCE_TYPES.PREGAME,
+        goalId: input.goalId || null,
       },
     }),
   ]);

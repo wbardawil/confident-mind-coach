@@ -68,6 +68,7 @@ export async function submitAar(data: AarInput): Promise<AarResult> {
         description: `Reviewed: ${input.whatHappened.slice(0, 80)}`,
         scoreDelta: 2,
         sourceType: LEDGER_SOURCE_TYPES.AAR,
+        goalId: input.goalId || null,
       },
     }),
   ]);

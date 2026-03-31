@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { ConfidenceScore } from "@/components/shared/confidence-score";
 import { EscalationBanner } from "@/components/shared/escalation-banner";
+import { GoalSelector } from "@/components/shared/goal-selector";
 import { submitReset, type ResetResult } from "@/lib/actions/reset";
 import { resetInputSchema, type ResetInput } from "@/lib/validators/reset";
 
@@ -35,6 +36,7 @@ export function ResetForm() {
       eventDescription: "",
       emotionalState: "",
       confidenceScore: 5,
+      goalId: "",
     },
   });
 
@@ -109,6 +111,17 @@ export function ResetForm() {
                 </p>
               )}
             </div>
+
+            <Controller
+              name="goalId"
+              control={control}
+              render={({ field }) => (
+                <GoalSelector
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                />
+              )}
+            />
 
             {result && !result.success && !("flagged" in result && result.flagged) && (
               <p className="text-sm text-destructive">

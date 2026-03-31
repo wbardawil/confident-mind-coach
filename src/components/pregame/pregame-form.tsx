@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { ConfidenceScore } from "@/components/shared/confidence-score";
 import { EscalationBanner } from "@/components/shared/escalation-banner";
+import { GoalSelector } from "@/components/shared/goal-selector";
 import { submitPregame, type PregameResult } from "@/lib/actions/pregame";
 import { pregameInputSchema, type PregameInput } from "@/lib/validators/pregame";
 
@@ -37,6 +38,7 @@ export function PregameForm() {
       confidenceLevel: 5,
       fear: "",
       definitionOfSuccess: "",
+      goalId: "",
     },
   });
 
@@ -125,6 +127,17 @@ export function PregameForm() {
                 </p>
               )}
             </div>
+
+            <Controller
+              name="goalId"
+              control={control}
+              render={({ field }) => (
+                <GoalSelector
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                />
+              )}
+            />
 
             {result && !result.success && !("flagged" in result && result.flagged) && (
               <p className="text-sm text-destructive">
