@@ -81,11 +81,60 @@
 - Build: prisma generate && next build
 - Clerk in dev fallback mode (placeholder keys)
 
-## Phase 9 — Auth + Multi-user
+## Phase 9 — Goal-Directed Confidence (in progress)
+- ✅ Confidence Goals CRUD (1-5 active goals with efficacy scoring)
+- ✅ Goal context injected into coaching memory
+- ✅ Goals page with category, efficacy slider, achieve/pause lifecycle
+- Goal tagging on ESP, Pregame, AAR, Reset, and Ledger entries
+- Weekly efficacy check-in flow (rate progress on each goal)
+- Goal-specific evidence bank (linked ledger deposits per goal)
+- Confidence forecast (efficacy trend projection)
+
+## Phase 10 — Book Tools (from "The Confident Mind")
+
+### Built ✅
+- ESP (Effort, Success, Progress) — daily reflection
+- Top Ten Memory Bank — 10 confidence memories
+- Pregame Routine — pre-performance mental prep
+- Reset / Flat Tire Drill — mid-performance recovery
+- After Action Review (What / So What / Now What)
+- Confidence Ledger — deposits, withdrawals, trends
+- Affirmations — auto-generated from coaching sessions
+
+### Not Yet Built
+**High Priority:**
+- Mental Rehearsal / Envisioning — guided multi-sensory visualization of performing successfully
+- Identity Statement — "I am a..." declaration that shapes self-image
+- Motivational Scripting — longer narratives beyond single affirmations
+- Constructive Thinking Filter — catch and reframe negative self-talk in real-time
+
+**Medium Priority:**
+- C-B-A Pre-Performance Trigger — Cue conviction → Breathe body → Attach attention
+- Reframing Setbacks — structured temporary/specific/external reframe exercise
+- Performance Imagery Script — written screenplay of ideal performance (Appendix I)
+- 80/20 Visualization Rule — 80% positive imagery, 20% contingency planning
+- "Enough" Statement — prepared statement of sufficiency for high-pressure moments
+
+**Lower Priority:**
+- First-Person Narrative Recording — audio recording of your perfect day
+- Visualization Board — digital vision board
+- Four Realities Acceptance — guided exercise accepting imperfection, nerves, plateaus
+- Energy State Management — breathing and activation level regulation
+- Mid-Performance Celebration Prompts — notice and celebrate small wins during performance
+- Learned Optimism / Explanatory Style — Seligman's permanent/temporary reframing training
+
+## Phase 11 — Auth + Multi-user
 - Custom domain for Clerk production auth
 - Per-user accounts and data isolation
 - Family feature (parent/child accounts with separate access)
 
-## Phase 10 — Real usage + UX improvements
-## Phase 11 — Confidence analytics
-## Phase 12 — Agent orchestration
+## Phase 12 — Business & Analytics
+- Subscription tiers (Haiku free, Sonnet/Opus premium)
+- Confidence analytics dashboard
+- Goal-specific progress reports
+- Usage tracking and engagement metrics
+
+## Phase 13 — Agent Orchestration
+- Multi-agent coaching flows
+- Automated weekly check-ins
+- Smart nudges based on activity patterns
