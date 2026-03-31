@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/utils/db";
+import { getGoalContext } from "@/lib/actions/goals";
 
 /**
  * Build a coaching memory snapshot for the AI coach.
@@ -17,6 +18,7 @@ export async function getCoachingMemory(userId: string): Promise<string> {
     ledgerSummary,
     recentAffirmations,
     documents,
+    goalContext,
   ] = await Promise.all([
     // Last 5 ESP entries
     db.eSPEntry.findMany({
@@ -83,6 +85,9 @@ export async function getCoachingMemory(userId: string): Promise<string> {
       select: { fileName: true, category: true, extractedContent: true },
       orderBy: { createdAt: "asc" },
     }),
+
+    // Active confidence goals
+    getGoalContext(userId),
   ]);
 
   const sections: string[] = [];
@@ -156,6 +161,11 @@ export async function getCoachingMemory(userId: string): Promise<string> {
     sections.push(
       `## Confidence ledger summary\n\n- Total deposits: ${deposits}\n- Total withdrawals: ${withdrawals}\n- Net confidence score: ${netScore > 0 ? "+" : ""}${netScore}`,
     );
+  }
+
+  // ── Active confidence goals ──
+  if (goalContext) {
+    sections.push(goalContext);
   }
 
   // ── Uploaded documents ──

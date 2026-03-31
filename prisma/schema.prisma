@@ -20,6 +20,7 @@ model User {
   profile          Profile?
   documents        UserDocument[]
   achievements     Achievement[]
+  goals            ConfidenceGoal[]
   affirmations     Affirmation[]
   events           Event[]
   espEntries       ESPEntry[]
@@ -76,6 +77,23 @@ model Achievement {
   rank        Int? // optional ordering 1–10
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+// ─── CONFIDENCE GOAL (goal-directed confidence) ──
+
+model ConfidenceGoal {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String // "Grow cash flow to $15K/month"
+  description     String? // why this goal matters
+  category        String // career | financial | personal | health | relationship | other
+  targetDate      DateTime? // optional deadline
+  efficacyScore   Int      @default(5) // 1-10: "How confident am I that I can achieve this?"
+  status          String   @default("active") // active | achieved | paused
+  evidenceCount   Int      @default(0) // cached count of linked ledger deposits
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ─── AFFIRMATION ───────────────────────────────
@@ -191,5 +209,6 @@ model LedgerEntry {
   scoreDelta  Int? // nullable point change
   sourceId    String? // nullable FK to originating record
   sourceType  String? // nullable: ESP | PREGAME | RESET | AAR | TOP_TEN | MANUAL
+  goalId      String? // optional link to a ConfidenceGoal
   createdAt   DateTime @default(now())
 }

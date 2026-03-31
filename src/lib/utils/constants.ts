@@ -12,6 +12,7 @@ export const ROUTES = {
   RESET: "/reset",
   AAR: "/aar",
   COACH: "/coach",
+  GOALS: "/goals",
   LEDGER: "/ledger",
   SETTINGS: "/settings",
 } as const;
