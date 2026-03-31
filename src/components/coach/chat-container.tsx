@@ -22,17 +22,20 @@ interface EscalationData {
 interface ChatContainerProps {
   initialMessages?: Message[];
   initialSessionId?: string | null;
+  modelLabel?: string;
 }
 
 export function ChatContainer({
   initialMessages = [],
   initialSessionId = null,
+  modelLabel: initialModelLabel = "Haiku",
 }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [escalation, setEscalation] = useState<EscalationData | null>(null);
+  const [activeModel, setActiveModel] = useState(initialModelLabel);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom
@@ -123,6 +126,7 @@ export function ChatContainer({
 
               if (data.done) {
                 setSessionId(data.sessionId);
+                if (data.model) setActiveModel(data.model);
                 break;
               }
 
@@ -212,6 +216,11 @@ export function ChatContainer({
       </div>
 
       {/* Input area */}
+      <div className="flex items-center justify-between pt-1 pb-1">
+        <span className="text-xs text-muted-foreground">
+          Model: <span className="font-medium">{activeModel}</span>
+        </span>
+      </div>
       <ChatInput onSend={handleSend} disabled={isStreaming || !!escalation} />
     </div>
   );
