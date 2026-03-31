@@ -64,7 +64,7 @@ Tailwind CSS
 shadcn/ui
 Prisma
 PostgreSQL 16 (Neon serverless in production)
-Anthropic API (claude-haiku-4-5-20251001)
+Anthropic API (user-selectable: Haiku 4.5, Sonnet 3.5, Sonnet 4, Opus 3)
 Clerk authentication (dev fallback mode, placeholder keys)
 
 Working Flows:
@@ -78,8 +78,9 @@ Working Flows:
 - Reset (form + AI + distress detection + persistence)
 - AAR (form + AI + persistence)
 - Confidence Ledger (summaries + trend + entries)
-- Settings (editable profile, display name, coaching config, sign out)
-- Coach (streaming conversational AI, multi-turn, crisis-safe)
+- Settings (editable profile, display name, coaching config, model selector, document uploads, sign out)
+- Coach (streaming conversational AI, multi-turn, crisis-safe, cross-session memory)
+- Goals (1-5 confidence goals with efficacy scoring, achieve/pause lifecycle)
 
 Implemented Agent Modes:
 - ESP ✅
@@ -90,13 +91,15 @@ Implemented Agent Modes:
 
 Memory tables:
 - User (name, email, clerkId)
-- Profile
+- Profile (includes coachModel preference)
 - Achievement
+- ConfidenceGoal (goal-directed confidence with efficacy scoring)
+- UserDocument (uploaded context files with extracted text)
 - ESPEntry
 - IPREntry
 - AAREntry
 - CoachingSession
-- LedgerEntry
+- LedgerEntry (includes optional goalId for goal tagging)
 - Affirmation
 - Event
 - ChatSession (conversational coach sessions)
@@ -126,7 +129,17 @@ Environment:
 - Anthropic API key configured
 - Neon PostgreSQL connected in production
 
+Recent additions (this session):
+- Document uploads on Settings (PDF, DOCX, MD, TXT with text extraction)
+- Coaching memory system (cross-session recall of conversations, ESP, AARs, goals, documents)
+- Model selector (Haiku 4.5, Sonnet 3.5, Sonnet 4, Opus 3) with per-user preference
+- Dashboard Suspense streaming (fixes mobile freeze)
+- Confidence Goals (/goals) with efficacy scoring and coaching integration
+
 Future:
+- Goal tagging on ESP, Pregame, AAR, Ledger entries
+- Weekly efficacy check-in flow
+- Book tools: Mental Rehearsal, Identity Statement, Motivational Scripting
 - Clerk production auth (requires custom domain)
 - Family feature (parent/child accounts with separate access)
 - Per-user data isolation (currently shared dev user)

@@ -88,6 +88,28 @@ The Confidence Ledger system is now functional, including:
 
 Settings allows editing of the coaching profile (role, domain, strengths, challenges, baseline score, display name). The `updateSettings` server action validates input with Zod and uses `db.profile.upsert` to safely create or update the profile. The User model includes an optional `name` field for display name.
 
+Users can upload documents (PDF, DOCX, MD, TXT) via Settings to provide coaching
+context (resumes, personality assessments, etc.). Text is extracted server-side
+via `pdf-parse` and `mammoth`, stored in the `UserDocument` model, and injected
+into coaching prompts.
+
+The coaching memory system (`getCoachingMemory()` in `lib/coaching/memory.ts`)
+aggregates past chat sessions, ESP reflections, AARs, coaching feedback,
+affirmations, ledger summary, uploaded documents, and confidence goals into the
+system prompt. The coach treats this as its own memory — it recalls past
+conversations and references them naturally.
+
+Users can select their coach AI model in Settings (Haiku 4.5, Sonnet 3.5,
+Sonnet 4, Opus 3). Model preference is stored in `Profile.coachModel` and
+resolved to Anthropic model IDs via `resolveCoachModel()` in `lib/ai/client.ts`.
+Structured flows always use Haiku for speed.
+
+Confidence Goals (`/goals`) let users set 1-5 specific outcomes they're working
+toward (cash flow, career, personal brand, etc.). Each goal has a self-efficacy
+score (1-10) tracked over time. Goals are injected into coaching memory so the
+AI coach ties daily work to what matters. The `ConfidenceGoal` model supports
+active/achieved/paused lifecycle.
+
 ## Deployment
 
 The app is deployed to Vercel at https://confident-mind-coach.vercel.app.
@@ -95,7 +117,7 @@ The app is deployed to Vercel at https://confident-mind-coach.vercel.app.
 - Database: Neon PostgreSQL (us-east-1)
 - Build: `prisma generate && next build`
 - Auth: Clerk development instance (per-user accounts via Google/email sign-up)
-- AI: Anthropic API (claude-haiku-4-5-20251001)
+- AI: Anthropic API (user-selectable: Haiku 4.5, Sonnet 3.5, Sonnet 4, Opus 3)
 
 Auth note: Clerk is running in development mode. Each user gets their own account
 and data. A custom domain + Clerk production instance is needed for production-grade auth.
