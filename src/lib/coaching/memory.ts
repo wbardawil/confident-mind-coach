@@ -46,7 +46,7 @@ export async function getCoachingMemory(userId: string): Promise<string> {
       select: { mode: true, outputJson: true, createdAt: true },
     }),
 
-    // Last 5 past chat sessions (titles + last assistant message as summary)
+    // Last 5 past chat sessions with messages for summarization
     db.chatSession.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
@@ -56,10 +56,9 @@ export async function getCoachingMemory(userId: string): Promise<string> {
         title: true,
         updatedAt: true,
         messages: {
-          where: { role: "assistant" },
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { content: true },
+          orderBy: { createdAt: "asc" },
+          take: 20,
+          select: { role: true, content: true },
         },
       },
     }),
@@ -88,17 +87,20 @@ export async function getCoachingMemory(userId: string): Promise<string> {
 
   const sections: string[] = [];
 
-  // ── Past chat sessions ──
+  // ── Past chat sessions (summarized for relevance) ──
   if (pastChatSessions.length > 0) {
-    const lines = pastChatSessions.map((s) => {
+    const sessionBlocks = pastChatSessions.map((s) => {
       const date = s.updatedAt.toISOString().slice(0, 10);
-      const lastMsg = s.messages[0]?.content;
-      const summary = lastMsg
-        ? lastMsg.slice(0, 200) + (lastMsg.length > 200 ? "..." : "")
-        : "No summary";
-      return `- [${date}] "${s.title ?? "Untitled"}" — ${summary}`;
+      const title = s.title ?? "Untitled";
+
+      if (s.messages.length === 0) return `- [${date}] "${title}" — (empty session)`;
+
+      return `### [${date}] "${title}"\n\n${summarizeSession(s.messages)}`;
     });
-    sections.push(`## Recent coaching conversations\n\n${lines.join("\n")}`);
+
+    sections.push(
+      `## Recent coaching conversations (last ${pastChatSessions.length} sessions)\n\nUse these to maintain continuity — reference what was discussed, follow up on commitments the user made, and track how themes evolve over time.\n\n${sessionBlocks.join("\n\n---\n\n")}`,
+    );
   }
 
   // ── Recent ESP reflections ──
@@ -174,4 +176,50 @@ export async function getCoachingMemory(userId: string): Promise<string> {
 function truncate(str: string, max: number): string {
   if (str.length <= max) return str;
   return str.slice(0, max) + "...";
+}
+
+/**
+ * Summarize a chat session into its key elements:
+ * - What the user brought up (concerns, goals, situations)
+ * - Key coaching advice given
+ * - Any commitments or action items the user stated
+ */
+function summarizeSession(
+  messages: Array<{ role: string; content: string }>,
+): string {
+  const userMessages = messages
+    .filter((m) => m.role === "user")
+    .map((m) => m.content);
+  const coachMessages = messages
+    .filter((m) => m.role === "assistant")
+    .map((m) => m.content);
+
+  const parts: string[] = [];
+
+  // User's key topics — take the first and last user message for context
+  if (userMessages.length > 0) {
+    const topics: string[] = [];
+    topics.push(truncate(userMessages[0], 300));
+    if (userMessages.length > 1) {
+      topics.push(truncate(userMessages[userMessages.length - 1], 300));
+    }
+    parts.push(`**What the user discussed:** ${topics.join(" → ")}`);
+  }
+
+  // Coach's key advice — take the last coach response (most synthesized)
+  if (coachMessages.length > 0) {
+    const lastCoachMsg = coachMessages[coachMessages.length - 1];
+    parts.push(`**Key coaching given:** ${truncate(lastCoachMsg, 400)}`);
+  }
+
+  // Look for commitment language in user messages
+  const commitmentPatterns = /\b(i will|i('ll| am going to)|my plan is|i commit|i('m| am) going to|next step|action item|goal is)\b/i;
+  const commitments = userMessages
+    .filter((m) => commitmentPatterns.test(m))
+    .map((m) => truncate(m, 200));
+  if (commitments.length > 0) {
+    parts.push(`**User commitments:** ${commitments.join("; ")}`);
+  }
+
+  return parts.join("\n");
 }
