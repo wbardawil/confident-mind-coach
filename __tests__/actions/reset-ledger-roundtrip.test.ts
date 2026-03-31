@@ -123,24 +123,32 @@ vi.mock("@/lib/safety/crisis-detect", () => ({
   scanForCrisis: vi.fn().mockReturnValue({ flagged: false }),
 }));
 
+const { mockAiData } = vi.hoisted(() => ({
+  mockAiData: {
+    acknowledgement: "I hear you.",
+    safeguard: "Remember your strengths.",
+    nextActionCue: "Take a deep breath.",
+    withdrawalImpact: {
+      title: "Setback recorded",
+      description: "A moderate confidence dip",
+      scoreDelta: -2,
+    },
+    recoveryImpact: {
+      title: "Faced it head-on",
+      description: "Processed the setback constructively",
+      scoreDelta: 2,
+    },
+  },
+}));
+
 vi.mock("@/lib/ai/client", () => ({
-  generateCoaching: vi.fn().mockResolvedValue(
-    JSON.stringify({
-      acknowledgement: "I hear you.",
-      safeguard: "Remember your strengths.",
-      nextActionCue: "Take a deep breath.",
-    }),
-  ),
+  generateCoaching: vi.fn().mockResolvedValue(JSON.stringify(mockAiData)),
 }));
 
 vi.mock("@/lib/ai/parse", () => ({
   parseAiResponse: vi.fn().mockReturnValue({
     success: true,
-    data: {
-      acknowledgement: "I hear you.",
-      safeguard: "Remember your strengths.",
-      nextActionCue: "Take a deep breath.",
-    },
+    data: mockAiData,
   }),
 }));
 
@@ -167,7 +175,7 @@ describe("Reset → Ledger roundtrip", () => {
     setupMockImplementations();
   });
 
-  it("distress Reset creates both WITHDRAWAL and DEPOSIT entries with correct values", async () => {
+  it("Reset always creates both WITHDRAWAL and DEPOSIT entries (AI-assessed)", async () => {
     const result = await submitReset({
       eventDescription: "I lost money",
       emotionalState: "I felt like a looser",
@@ -176,91 +184,50 @@ describe("Reset → Ledger roundtrip", () => {
 
     expect(result.success).toBe(true);
 
-    // ── Verify ledger store has exactly 2 entries ──
+    // AI always assesses both withdrawal and recovery
     expect(ledgerStore).toHaveLength(2);
 
     const withdrawal = ledgerStore.find((e) => e.type === "WITHDRAWAL");
     const deposit = ledgerStore.find((e) => e.type === "DEPOSIT");
 
-    // ── Withdrawal entry ──
+    // ── Withdrawal entry (AI-assessed) ──
     expect(withdrawal).toBeDefined();
-    expect(withdrawal!.title).toBe("Confidence Dip");
-    expect(withdrawal!.scoreDelta).toBeLessThan(0);
+    expect(withdrawal!.title).toBe("Setback recorded");
+    expect(withdrawal!.scoreDelta).toBe(-2);
     expect(withdrawal!.sourceType).toBe("RESET");
-    expect(withdrawal!.description).toContain("Setback signals:");
 
-    // ── Deposit entry ──
+    // ── Deposit entry (AI-assessed) ──
     expect(deposit).toBeDefined();
-    expect(deposit!.title).toBe("Reset Recovery");
+    expect(deposit!.title).toBe("Faced it head-on");
     expect(deposit!.scoreDelta).toBe(2);
     expect(deposit!.sourceType).toBe("RESET");
 
-    // ── Aggregate checks against the store ──
+    // ── Net score ──
     const totalScore = ledgerStore.reduce((acc, e) => acc + (e.scoreDelta ?? 0), 0);
-    expect(totalScore).toBe(withdrawal!.scoreDelta! + 2); // negative + 2
-    expect(totalScore).toBeLessThan(2); // net negative because withdrawal pulls it down
-
-    const withdrawalCount = ledgerStore.filter((e) => e.type === "WITHDRAWAL").length;
-    expect(withdrawalCount).toBe(1);
-
-    const depositCount = ledgerStore.filter((e) => e.type === "DEPOSIT").length;
-    expect(depositCount).toBe(1);
-
-    // ── Net 14d check ──
-    // Both entries were created "today", so they fall within the 14-day window.
-    const net14d = ledgerStore.reduce((acc, e) => acc + (e.scoreDelta ?? 0), 0);
-    expect(net14d).toBe(totalScore);
-    expect(net14d).toBeLessThan(2);
-    expect(net14d).toBeGreaterThan(-3); // withdrawal caps at -2, deposit is +2
-  });
-
-  it("non-distress Reset creates only a DEPOSIT entry", async () => {
-    const result = await submitReset({
-      eventDescription: "Had a decent practice",
-      emotionalState: "Feeling okay",
-      confidenceScore: 7,
-    });
-
-    expect(result.success).toBe(true);
-
-    expect(ledgerStore).toHaveLength(1);
-
-    const deposit = ledgerStore[0];
-    expect(deposit.type).toBe("DEPOSIT");
-    expect(deposit.title).toBe("Reset Recovery");
-    expect(deposit.scoreDelta).toBe(2);
-
-    const withdrawal = ledgerStore.find((e) => e.type === "WITHDRAWAL");
-    expect(withdrawal).toBeUndefined();
+    expect(totalScore).toBe(0); // -2 + 2 = 0
   });
 
   it("multiple Resets accumulate ledger entries correctly", async () => {
-    // First: distress reset (withdrawal + deposit)
     await submitReset({
       eventDescription: "I bombed the interview",
       emotionalState: "Devastated and crushed",
       confidenceScore: 1,
     });
 
-    // Second: calm reset (deposit only)
     await submitReset({
       eventDescription: "Tough meeting but handled it",
       emotionalState: "Tired but okay",
       confidenceScore: 6,
     });
 
-    // Should have: withdrawal + deposit + deposit = 3 entries
-    expect(ledgerStore).toHaveLength(3);
+    // Each Reset creates 2 entries (withdrawal + deposit), so 4 total
+    expect(ledgerStore).toHaveLength(4);
 
     const withdrawals = ledgerStore.filter((e) => e.type === "WITHDRAWAL");
     const deposits = ledgerStore.filter((e) => e.type === "DEPOSIT");
 
-    expect(withdrawals).toHaveLength(1);
+    expect(withdrawals).toHaveLength(2);
     expect(deposits).toHaveLength(2);
-
-    const totalScore = ledgerStore.reduce((acc, e) => acc + (e.scoreDelta ?? 0), 0);
-    // withdrawal (-2) + deposit (+2) + deposit (+2) = +2
-    expect(totalScore).toBe(withdrawals[0].scoreDelta! + 2 + 2);
   });
 
   it("CoachingSession is persisted with correct shape on distress Reset", async () => {
@@ -283,11 +250,7 @@ describe("Reset → Ledger roundtrip", () => {
       emotionalState: "I felt like a looser",
       confidenceScore: 1,
     });
-    expect(sessionArgs.data.outputJson).toEqual({
-      acknowledgement: "I hear you.",
-      safeguard: "Remember your strengths.",
-      nextActionCue: "Take a deep breath.",
-    });
+    expect(sessionArgs.data.outputJson).toEqual(mockAiData);
   });
 });
 

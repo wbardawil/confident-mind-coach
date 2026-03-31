@@ -8,7 +8,6 @@ import { buildResetPrompt } from "@/lib/coaching/reset";
 import { resetResponseSchema, type ResetResponse } from "@/lib/ai/schemas";
 import { resetInputSchema, type ResetInput } from "@/lib/validators/reset";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
-import { detectDistress } from "@/lib/utils/distress-detect";
 import { coerceToNumber } from "@/lib/utils/coerce";
 import {
   runCoachingFlow,
@@ -55,24 +54,8 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
 
   const { user, input, aiData } = outcome;
 
-  // Detect distress → optional withdrawal (text signals + confidence score)
-  const distress = detectDistress({
-    eventDescription: input.eventDescription,
-    emotionalState: input.emotionalState,
-    confidenceScore: input.confidenceScore,
-  });
-
-  // Persist CoachingSession + ledger entries as ONE atomic event.
-  //
-  // A successful Reset is a single product concept: "I did a Reset, here
-  // is the coaching I received, and here is its confidence impact."  If any
-  // write fails, the entire event should roll back so the user can retry
-  // cleanly without orphaned sessions or half-state ledger entries.
-  //
-  // Note: the *flagged* and *AI-parse-failure* CoachingSession writes
-  // are handled by runCoachingFlow and intentionally stay outside this
-  // transaction — they are error-path logs, not part of a successful event.
-  const persistOps: Prisma.PrismaPromise<unknown>[] = [
+  // Persist CoachingSession + AI-assessed ledger entries atomically.
+  await db.$transaction([
     db.coachingSession.create({
       data: {
         userId: user.id,
@@ -82,40 +65,33 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
         flagged: false,
       },
     }),
-  ];
 
-  if (distress.detected) {
-    persistOps.push(
-      db.ledgerEntry.create({
-        data: {
-          userId: user.id,
-          type: LEDGER_TYPES.WITHDRAWAL,
-          title: "Confidence Dip",
-          description: `Setback signals: ${distress.matchedSignals.join(", ")}`,
-          scoreDelta: distress.withdrawalScore,
-          sourceType: LEDGER_SOURCE_TYPES.RESET,
-          goalId: input.goalId || null,
-        },
-      }),
-    );
-  }
-
-  // Always create recovery deposit (the act of resetting itself is positive)
-  persistOps.push(
+    // AI-assessed withdrawal (severity based on context, scope, and impact)
     db.ledgerEntry.create({
       data: {
         userId: user.id,
-        type: LEDGER_TYPES.DEPOSIT,
-        title: "Reset Recovery",
-        description: `Reset after: ${input.eventDescription.slice(0, 80)}`,
-        scoreDelta: 2,
+        type: LEDGER_TYPES.WITHDRAWAL,
+        title: aiData.withdrawalImpact.title,
+        description: aiData.withdrawalImpact.description,
+        scoreDelta: aiData.withdrawalImpact.scoreDelta,
         sourceType: LEDGER_SOURCE_TYPES.RESET,
         goalId: input.goalId || null,
       },
     }),
-  );
 
-  await db.$transaction(persistOps);
+    // AI-assessed recovery deposit (earned by doing the Reset)
+    db.ledgerEntry.create({
+      data: {
+        userId: user.id,
+        type: LEDGER_TYPES.DEPOSIT,
+        title: aiData.recoveryImpact.title,
+        description: aiData.recoveryImpact.description,
+        scoreDelta: aiData.recoveryImpact.scoreDelta,
+        sourceType: LEDGER_SOURCE_TYPES.RESET,
+        goalId: input.goalId || null,
+      },
+    }),
+  ]);
 
   revalidatePath("/reset");
   revalidatePath("/dashboard");
