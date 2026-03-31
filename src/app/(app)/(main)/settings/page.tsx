@@ -1,10 +1,18 @@
 import { getUserSettings } from "@/lib/actions/settings";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { SignOutButton } from "@/components/settings/sign-out-button";
+import { DocumentUpload } from "@/components/settings/document-upload";
+import { DocumentList } from "@/components/settings/document-list";
+import { getDocuments } from "@/lib/actions/documents";
+import { MAX_DOCUMENTS_PER_USER } from "@/lib/validators/documents";
 
 export default async function SettingsPage() {
-  const settings = await getUserSettings();
+  const [settings, documents] = await Promise.all([
+    getUserSettings(),
+    getDocuments(),
+  ]);
 
   if (!settings) {
     return (
@@ -27,6 +35,32 @@ export default async function SettingsPage() {
       </div>
 
       <SettingsForm settings={settings} />
+
+      <Separator className="my-8" />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Documents</CardTitle>
+          <CardDescription>
+            Upload documents to give your coach more context about you.
+            Personality assessments, resumes, performance reviews, and notes
+            help the coach personalize your experience.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <DocumentUpload
+            currentCount={documents.length}
+            maxDocuments={MAX_DOCUMENTS_PER_USER}
+          />
+          <Separator />
+          <div>
+            <h3 className="text-sm font-medium mb-3">
+              Uploaded Documents ({documents.length}/{MAX_DOCUMENTS_PER_USER})
+            </h3>
+            <DocumentList documents={documents} />
+          </div>
+        </CardContent>
+      </Card>
 
       <Separator className="my-8" />
 

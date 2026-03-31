@@ -1,26 +1,33 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { buildEspPrompt } from "@/lib/coaching/esp";
 import { buildPregamePrompt } from "@/lib/coaching/pregame";
 import { buildResetPrompt } from "@/lib/coaching/reset";
 import { buildAarPrompt } from "@/lib/coaching/aar";
 
+// Mock document context so tests don't hit the database
+vi.mock("@/lib/actions/documents", () => ({
+  getDocumentContext: vi.fn().mockResolvedValue(""),
+}));
+
 describe("buildEspPrompt", () => {
-  it("returns systemPrompt and userMessage", () => {
-    const result = buildEspPrompt({
+  it("returns systemPrompt and userMessage", async () => {
+    const result = await buildEspPrompt({
       effort: "Worked hard",
       success: "Got a win",
       progress: "Moving forward",
+      userId: "test-user",
       profile: null,
     });
     expect(result.systemPrompt).toBeTruthy();
     expect(result.userMessage).toBeTruthy();
   });
 
-  it("includes profile context when provided", () => {
-    const result = buildEspPrompt({
+  it("includes profile context when provided", async () => {
+    const result = await buildEspPrompt({
       effort: "Effort",
       success: "Success",
       progress: "Progress",
+      userId: "test-user",
       profile: {
         role: "Sales Manager",
         performanceDomain: "Enterprise Sales",
@@ -32,11 +39,12 @@ describe("buildEspPrompt", () => {
     expect(result.systemPrompt).toContain("communication");
   });
 
-  it("includes user input in userMessage", () => {
-    const result = buildEspPrompt({
+  it("includes user input in userMessage", async () => {
+    const result = await buildEspPrompt({
       effort: "Early morning training",
       success: "Hit my targets",
       progress: "Consistent routine",
+      userId: "test-user",
       profile: null,
     });
     expect(result.userMessage).toContain("Early morning training");
@@ -44,11 +52,12 @@ describe("buildEspPrompt", () => {
     expect(result.userMessage).toContain("Consistent routine");
   });
 
-  it("instructs JSON-only output in system prompt", () => {
-    const result = buildEspPrompt({
+  it("instructs JSON-only output in system prompt", async () => {
+    const result = await buildEspPrompt({
       effort: "E",
       success: "S",
       progress: "P",
+      userId: "test-user",
       profile: null,
     });
     expect(result.systemPrompt).toContain("ONLY valid JSON");

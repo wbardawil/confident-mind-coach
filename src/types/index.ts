@@ -14,3 +14,10 @@ export type LedgerSourceType =
   | "MANUAL";
 
 export type EventStatus = "upcoming" | "completed" | "cancelled";
+
+export type DocumentCategory =
+  | "resume"
+  | "personality"
+  | "assessment"
+  | "notes"
+  | "other";
