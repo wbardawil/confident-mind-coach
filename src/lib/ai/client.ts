@@ -19,7 +19,7 @@ const MODELS = {
   /** Used for structured flows (ESP, Pregame, Reset, AAR) — fast, formulaic JSON output. */
   structured: "claude-haiku-4-5-20251001",
   /** Used for conversational coaching — deeper reasoning, emotional intelligence. */
-  conversational: "claude-sonnet-4-5-20250514",
+  conversational: "claude-3-5-sonnet-20241022",
 } as const;
 
 let _anthropic: Anthropic | null = null;
