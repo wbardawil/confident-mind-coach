@@ -83,6 +83,7 @@ export default async function CoachPage({ searchParams }: CoachPageProps) {
       <ChatContainer
         initialMessages={initialMessages}
         initialSessionId={initialSessionId}
+        modelLabel={MODEL_LABELS[coachModel] ?? coachModel}
       />
     </div>
   );
