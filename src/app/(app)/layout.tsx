@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { TimezoneSync } from "@/components/providers/timezone-sync";
 
 export default function AppLayout({
   children,
@@ -8,6 +9,7 @@ export default function AppLayout({
 }) {
   return (
     <div className="flex min-h-screen">
+      <TimezoneSync />
       {/* Desktop sidebar */}
       <div className="hidden md:block">
         <Sidebar />

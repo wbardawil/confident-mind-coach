@@ -1,4 +1,5 @@
 import { getDashboardData } from "@/lib/actions/dashboard";
+import { formatDateShort } from "@/lib/utils/format-date";
 import {
   Card,
   CardContent,
@@ -187,10 +188,7 @@ export async function DashboardContent() {
                             {meta?.label ?? session.mode}
                           </Badge>
                           <span className="text-muted-foreground">
-                            {session.createdAt.toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            {formatDateShort(session.createdAt, data.timezone)}
                           </span>
                         </div>
                         {meta && (
@@ -228,10 +226,7 @@ export async function DashboardContent() {
                         &ldquo;{aff.text}&rdquo;
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {aff.createdAt.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {formatDateShort(aff.createdAt, data.timezone)}
                         {" via "}
                         {aff.source}
                       </p>
@@ -268,10 +263,7 @@ export async function DashboardContent() {
                           : entry.effort}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {entry.createdAt.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {formatDateShort(entry.createdAt, data.timezone)}
                       </p>
                       <Separator className="mt-2" />
                     </div>

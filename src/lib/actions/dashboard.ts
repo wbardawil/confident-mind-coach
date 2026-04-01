@@ -74,6 +74,7 @@ export async function getDashboardData() {
 
   return {
     userName: user.name ?? user.profile?.role ?? "there",
+    timezone: user.profile?.timezone ?? "UTC",
     recentSessions,
     confidenceScore: ledgerBalance._sum.scoreDelta ?? 0,
     net14d: net14dAggregate._sum.scoreDelta ?? 0,
