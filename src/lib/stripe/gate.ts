@@ -3,11 +3,11 @@ import { getCurrentUser } from "@/lib/utils/user";
 import { getSessionLimit, isModelAllowed, type PlanTier } from "./config";
 
 /**
- * When true, all users are treated as Elite (bypasses all gates).
- * Set BYPASS_SUBSCRIPTION_GATE=true in .env.local for development/testing.
+ * Hardcoded bypass until Stripe is configured.
+ * TODO: Remove this and use BYPASS_SUBSCRIPTION_GATE env var when ready to enforce subscriptions.
  */
 function isBypassed(): boolean {
-  return process.env.BYPASS_SUBSCRIPTION_GATE === "true";
+  return true;
 }
 
 /**

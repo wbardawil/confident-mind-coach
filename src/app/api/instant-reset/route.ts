@@ -16,7 +16,7 @@ export async function POST() {
   }
 
   // Tier check — instant reset requires Pro+
-  const bypass = process.env.BYPASS_SUBSCRIPTION_GATE === "true";
+  const bypass = true; // TODO: revert when Stripe is live
   const tier = bypass ? "elite" : (user.subscriptionTier ?? "free");
   if (tier === "free") {
     return NextResponse.json(

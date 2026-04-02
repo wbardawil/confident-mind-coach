@@ -86,7 +86,7 @@ export async function runCoachingFlow<TInput, TOutput>(
   }
 
   // 1b. Free tier rate limit (3 sessions/day)
-  const bypass = process.env.BYPASS_SUBSCRIPTION_GATE === "true";
+  const bypass = true; // TODO: revert to process.env.BYPASS_SUBSCRIPTION_GATE === "true" when Stripe is live
   const tier = bypass ? "elite" : (user.subscriptionTier ?? "free");
   const limit = getSessionLimit(tier);
   if (limit !== Infinity) {
