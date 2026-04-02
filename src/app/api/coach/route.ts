@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     getCoachingMemory(user.id),
   ]);
 
-  const systemPrompt = buildCoachSystemPrompt(
+  let systemPrompt = buildCoachSystemPrompt(
     profile
       ? {
           role: profile.role,
@@ -107,6 +107,12 @@ export async function POST(req: NextRequest) {
     achievements,
     coachingMemory,
   );
+
+  // Inject language preference
+  const language = profile?.language;
+  if (language && language !== "English") {
+    systemPrompt += `\n\nIMPORTANT: Respond entirely in ${language}. All coaching responses must be in ${language}. Maintain your coaching style and methodology regardless of language.`;
+  }
 
   const messages = buildChatMessages(history);
 

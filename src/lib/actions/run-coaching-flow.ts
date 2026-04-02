@@ -119,6 +119,12 @@ export async function runCoachingFlow<TInput, TOutput>(
   // 4. Build prompt + 5. Call AI
   const prompt = await config.buildPrompt(input, user);
 
+  // Inject language preference into the system prompt
+  const language = user.profile?.language;
+  if (language && language !== "English") {
+    prompt.systemPrompt += `\n\nIMPORTANT: Respond entirely in ${language}. All coaching text, affirmations, and feedback must be in ${language}.`;
+  }
+
   let rawResponse: string;
   try {
     rawResponse = await generateCoaching(prompt);

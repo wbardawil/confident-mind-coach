@@ -22,6 +22,7 @@ export interface UserSettings {
   confidenceChallenges: string[];
   baselineScore: number | null;
   coachModel: string;
+  language: string;
   memberSince: Date;
 }
 
@@ -44,6 +45,7 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     confidenceChallenges: profile?.confidenceChallenges ?? [],
     baselineScore: profile?.baselineScore ?? null,
     coachModel: profile?.coachModel ?? "haiku-4.5",
+    language: profile?.language ?? "English",
     memberSince: user.createdAt,
   };
 }
@@ -80,6 +82,7 @@ export async function updateSettings(
       performanceDomain: input.performanceDomain,
       baselineScore: input.baselineScore,
       coachModel: input.coachModel,
+      language: input.language,
       strengths: input.strengths,
       confidenceChallenges: input.confidenceChallenges,
       recurringTriggers: [],
@@ -90,6 +93,7 @@ export async function updateSettings(
       performanceDomain: input.performanceDomain,
       baselineScore: input.baselineScore,
       coachModel: input.coachModel,
+      language: input.language,
       strengths: input.strengths,
       confidenceChallenges: input.confidenceChallenges,
     },

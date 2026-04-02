@@ -23,6 +23,7 @@ import {
 import {
   settingsInputSchema,
   COACH_MODEL_OPTIONS,
+  LANGUAGE_OPTIONS,
   type SettingsInput,
 } from "@/lib/validators/settings";
 
@@ -55,6 +56,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     defaultValues: {
       displayName: settings.displayName ?? "",
       coachModel: (settings.coachModel as "haiku-4.5" | "sonnet-3.5" | "sonnet-4" | "opus-3") ?? "haiku-4.5",
+      language: settings.language ?? "English",
       role: settings.role ?? "",
       performanceDomain: settings.performanceDomain ?? "",
       baselineScore: settings.baselineScore ?? 5,
@@ -167,6 +169,28 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 {errors.coachModel.message}
               </p>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Language selection */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base">Coaching Language</CardTitle>
+            <CardDescription>
+              Your coach will respond entirely in this language
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <select
+              {...register("language")}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {LANGUAGE_OPTIONS.map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </select>
           </CardContent>
         </Card>
 

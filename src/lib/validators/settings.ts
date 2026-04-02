@@ -8,8 +8,24 @@ export const COACH_MODEL_OPTIONS = [
   { value: "opus-3", label: "Opus 3", description: "Most capable — deepest insights for complex coaching" },
 ] as const;
 
+export const LANGUAGE_OPTIONS = [
+  "English",
+  "Español",
+  "Português",
+  "Français",
+  "Deutsch",
+  "Italiano",
+  "中文",
+  "日本語",
+  "한국어",
+  "العربية",
+  "हिन्दी",
+  "Русский",
+] as const;
+
 export const settingsInputSchema = z.object({
   coachModel: z.enum(["haiku-4.5", "sonnet-3.5", "sonnet-4", "opus-3"]),
+  language: z.string().min(1).max(50),
   displayName: z
     .string()
     .trim()
