@@ -125,7 +125,7 @@ export function ResetStream() {
           </Button>
           <Link href="/dashboard" className="flex-1">
             <Button className="w-full">
-              I'm Good — Back to Dashboard
+              I&apos;m Good — Back to Dashboard
             </Button>
           </Link>
         </div>
