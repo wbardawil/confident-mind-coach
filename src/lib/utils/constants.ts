@@ -13,6 +13,7 @@ export const ROUTES = {
   AAR: "/aar",
   COACH: "/coach",
   INSTANT_RESET: "/instant-reset",
+  CHALLENGES: "/challenges",
   GOALS: "/goals",
   LEDGER: "/ledger",
   SETTINGS: "/settings",
