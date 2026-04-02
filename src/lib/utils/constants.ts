@@ -12,6 +12,7 @@ export const ROUTES = {
   RESET: "/reset",
   AAR: "/aar",
   COACH: "/coach",
+  INSTANT_RESET: "/instant-reset",
   GOALS: "/goals",
   LEDGER: "/ledger",
   SETTINGS: "/settings",
@@ -41,5 +42,6 @@ export const LEDGER_SOURCE_TYPES = {
   AAR: "AAR",
   TOP_TEN: "TOP_TEN",
   COACH: "COACH",
+  INSTANT_RESET: "INSTANT_RESET",
   MANUAL: "MANUAL",
 } as const;

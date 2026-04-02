@@ -20,6 +20,7 @@ import {
   Sparkles,
   Activity,
   RefreshCw,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { ROUTES } from "@/lib/utils/constants";
@@ -45,6 +46,23 @@ export async function DashboardContent() {
           Your confidence overview at a glance.
         </p>
       </div>
+
+      {/* ── Instant Reset (panic button) ───────── */}
+      <Link href={ROUTES.INSTANT_RESET}>
+        <Card className="mb-4 border-red-500/30 bg-red-500/5 transition-colors hover:border-red-500/60">
+          <CardContent className="flex items-center gap-3 py-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
+              <Zap className="h-5 w-5 text-red-500" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Instant Reset</p>
+              <p className="text-xs text-muted-foreground">
+                Need help right now? One tap, zero forms.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
 
       {/* ── Quick nav ────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
