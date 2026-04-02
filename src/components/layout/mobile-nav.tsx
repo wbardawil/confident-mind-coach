@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Zap } from "lucide-react";
 import {
+  Menu,
+  Zap,
   LayoutDashboard,
   Trophy,
   Sun,
