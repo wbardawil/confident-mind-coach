@@ -52,7 +52,7 @@ export const PLANS = {
     annualPrice: "$24.99/month (billed annually)",
     features: [
       "Everything in Pro",
-      "Opus model access",
+      "Opus 4 model access",
       "Confidence DNA (coming soon)",
       "Exportable progress reports (coming soon)",
       "Priority AI responses",
