@@ -3,9 +3,18 @@ import { getCurrentUser } from "@/lib/utils/user";
 import { getSessionLimit, isModelAllowed, type PlanTier } from "./config";
 
 /**
+ * When true, all users are treated as Elite (bypasses all gates).
+ * Set BYPASS_SUBSCRIPTION_GATE=true in .env.local for development/testing.
+ */
+function isBypassed(): boolean {
+  return process.env.BYPASS_SUBSCRIPTION_GATE === "true";
+}
+
+/**
  * Get the current user's subscription tier.
  */
 export async function getUserTier(): Promise<PlanTier> {
+  if (isBypassed()) return "elite";
   const user = await getCurrentUser();
   if (!user) return "free";
   return (user.subscriptionTier as PlanTier) ?? "free";

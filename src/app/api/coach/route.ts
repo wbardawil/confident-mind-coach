@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
   }
 
   // 1b. Tier check — conversational coach requires Pro+
-  const tier = user.subscriptionTier ?? "free";
+  const bypass = process.env.BYPASS_SUBSCRIPTION_GATE === "true";
+  const tier = bypass ? "elite" : (user.subscriptionTier ?? "free");
   if (tier === "free") {
     return NextResponse.json(
       { error: "Upgrade to Pro to access the conversational coach." },
