@@ -86,7 +86,8 @@ export async function runCoachingFlow<TInput, TOutput>(
   }
 
   // 1b. Free tier rate limit (3 sessions/day)
-  const tier = user.subscriptionTier ?? "free";
+  const bypass = process.env.BYPASS_SUBSCRIPTION_GATE === "true";
+  const tier = bypass ? "elite" : (user.subscriptionTier ?? "free");
   const limit = getSessionLimit(tier);
   if (limit !== Infinity) {
     const startOfDay = new Date();
