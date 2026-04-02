@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 
 import { streamCoaching, resolveCoachModel } from "@/lib/ai/client";
 import { getCoachingMemory } from "@/lib/coaching/memory";
+import { getEffectiveModel } from "@/lib/stripe/gate";
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
 import { LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
@@ -12,6 +13,15 @@ export async function POST() {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Tier check — instant reset requires Pro+
+  const tier = user.subscriptionTier ?? "free";
+  if (tier === "free") {
+    return NextResponse.json(
+      { error: "Upgrade to Pro to access Instant Reset." },
+      { status: 403 },
+    );
   }
 
   const profile = user.profile;
@@ -25,7 +35,7 @@ export async function POST() {
       select: { title: true, description: true },
     }),
     getCoachingMemory(user.id),
-    resolveCoachModel(profile?.coachModel),
+    resolveCoachModel(getEffectiveModel(tier, profile?.coachModel ?? "haiku-4.5")),
   ]);
 
   const profileBlock = profile
