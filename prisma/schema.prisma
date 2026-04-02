@@ -34,6 +34,7 @@ model User {
   ledgerEntries    LedgerEntry[]
   coachingSessions CoachingSession[]
   chatSessions     ChatSession[]
+  enrollments      ChallengeEnrollment[]
 }
 
 // ─── USER DOCUMENT (uploaded context files) ────
@@ -218,4 +219,33 @@ model LedgerEntry {
   sourceType  String? // nullable: ESP | PREGAME | RESET | AAR | TOP_TEN | MANUAL
   goalId      String? // optional link to a ConfidenceGoal
   createdAt   DateTime @default(now())
+}
+
+// ─── CHALLENGE (time-boxed confidence programs) ──
+
+model ChallengeEnrollment {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeSlug String // e.g. "imposter-syndrome-7d"
+  currentDay    Int                 @default(1)
+  status        String              @default("active") // active | completed | abandoned
+  startedAt     DateTime            @default(now())
+  completedAt   DateTime?
+  dayEntries    ChallengeDayEntry[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([userId, challengeSlug])
+}
+
+model ChallengeDayEntry {
+  id           String              @id @default(cuid())
+  enrollmentId String
+  enrollment   ChallengeEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  day          Int // 1-indexed day number
+  reflection   String // user's response to the day's prompt
+  aiResponse   String? // AI coaching for this day
+  completedAt  DateTime            @default(now())
+  createdAt    DateTime            @default(now())
 }
