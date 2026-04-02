@@ -88,7 +88,6 @@ Keep it concise, warm, and grounded in THEIR evidence — not generic platitudes
   });
 
   const encoder = new TextEncoder();
-  let fullResponse = "";
 
   const streamResponse = new ReadableStream({
     async start(controller) {
@@ -99,7 +98,6 @@ Keep it concise, warm, and grounded in THEIR evidence — not generic platitudes
             event.delta.type === "text_delta"
           ) {
             const text = event.delta.text;
-            fullResponse += text;
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ text })}\n\n`),
             );
