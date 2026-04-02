@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/utils/db";
+import { writeJournalEntry } from "@/lib/coaching/journal";
 import { getCurrentUser } from "@/lib/utils/user";
 import { buildPregamePrompt } from "@/lib/coaching/pregame";
 import { pregameResponseSchema, type PregameResponse } from "@/lib/ai/schemas";
@@ -78,6 +79,12 @@ export async function submitPregame(data: PregameInput): Promise<PregameResult> 
       },
     }),
   ]);
+
+  writeJournalEntry({
+    userId: user.id,
+    type: "pregame",
+    context: `Pregame — Event: ${input.upcomingEvent} | Confidence: ${input.confidenceLevel}/10 | Fear: ${input.fear} | Success definition: ${input.definitionOfSuccess}\n\nCoach takeStock: ${aiData.takeStock}\nEnough statement: ${aiData.enoughStatement}`,
+  });
 
   revalidatePath("/pregame");
   revalidatePath("/dashboard");

@@ -3,13 +3,26 @@ import { db } from "@/lib/utils/db";
 import { getGoalContext } from "@/lib/actions/goals";
 
 /**
+ * Memory depth by subscription tier.
+ * Higher tiers get deeper history = smarter coach.
+ */
+const MEMORY_DEPTH = {
+  free: { sessions: 3, esp: 5, aar: 3, journal: 5 },
+  pro: { sessions: 15, esp: 20, aar: 10, journal: 30 },
+  elite: { sessions: 30, esp: 50, aar: 20, journal: 100 },
+} as const;
+
+type MemoryTier = keyof typeof MEMORY_DEPTH;
+
+/**
  * Build a coaching memory snapshot for the AI coach.
  *
- * Aggregates recent activity across all coaching flows into a concise
- * text block suitable for injection into the system prompt.
- * Budget target: ~3,000 tokens (~12K chars).
+ * Aggregates recent activity, coaching journal notes, and syntheses
+ * into a rich context block. Depth scales with subscription tier.
  */
-export async function getCoachingMemory(userId: string): Promise<string> {
+export async function getCoachingMemory(userId: string, tier?: string): Promise<string> {
+  const depth = MEMORY_DEPTH[(tier as MemoryTier) ?? "free"] ?? MEMORY_DEPTH.free;
+
   const [
     recentEsp,
     recentAar,
@@ -19,20 +32,22 @@ export async function getCoachingMemory(userId: string): Promise<string> {
     recentAffirmations,
     documents,
     goalContext,
+    journalNotes,
+    journalSyntheses,
   ] = await Promise.all([
-    // Last 5 ESP entries
+    // ESP entries (depth by tier)
     db.eSPEntry.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: depth.esp,
       select: { effort: true, success: true, progress: true, createdAt: true },
     }),
 
-    // Last 3 AAR entries
+    // AAR entries (depth by tier)
     db.aAREntry.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: depth.aar,
       select: { whatHappened: true, soWhat: true, nowWhat: true, createdAt: true },
     }),
 
@@ -48,11 +63,11 @@ export async function getCoachingMemory(userId: string): Promise<string> {
       select: { mode: true, outputJson: true, createdAt: true },
     }),
 
-    // Last 5 past chat sessions with messages for summarization
+    // Past chat sessions (depth by tier)
     db.chatSession.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
-      take: 5,
+      take: depth.sessions,
       select: {
         id: true,
         title: true,
@@ -88,6 +103,28 @@ export async function getCoachingMemory(userId: string): Promise<string> {
 
     // Active confidence goals
     getGoalContext(userId),
+
+    // Coaching journal: session notes (depth by tier)
+    db.coachingJournal.findMany({
+      where: {
+        userId,
+        type: { in: ["session", "esp", "reset", "pregame", "aar", "challenge"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: depth.journal,
+      select: { type: true, content: true, createdAt: true },
+    }),
+
+    // Coaching journal: syntheses (weekly, monthly, quarterly — all time)
+    db.coachingJournal.findMany({
+      where: {
+        userId,
+        type: { in: ["weekly", "monthly", "quarterly"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { type: true, content: true, period: true, createdAt: true },
+    }),
   ]);
 
   const sections: string[] = [];
@@ -176,6 +213,24 @@ export async function getCoachingMemory(userId: string): Promise<string> {
       return `### ${doc.category.toUpperCase()}: ${doc.fileName}\n\n${content}`;
     });
     sections.push(`## User-uploaded documents\n\n${docLines.join("\n\n")}`);
+  }
+
+  // ── Coaching journal: syntheses (highest signal, longest memory) ──
+  if (journalSyntheses.length > 0) {
+    const synthLines = journalSyntheses.map((s) => {
+      const label = s.type === "quarterly" ? "QUARTERLY" : s.type === "monthly" ? "MONTHLY" : "WEEKLY";
+      return `### ${label} [${s.period ?? s.createdAt.toISOString().slice(0, 10)}]\n${s.content}`;
+    });
+    sections.push(`## Your coaching journal — long-term patterns\n\nThese are your own notes about this person, synthesized over time. Use them to see the bigger arc of their confidence journey.\n\n${synthLines.join("\n\n---\n\n")}`);
+  }
+
+  // ── Coaching journal: session notes (recent observations) ──
+  if (journalNotes.length > 0) {
+    const noteLines = journalNotes.map((n) => {
+      const date = n.createdAt.toISOString().slice(0, 10);
+      return `- [${date}] (${n.type}) ${truncate(n.content, 300)}`;
+    });
+    sections.push(`## Your recent session notes\n\n${noteLines.join("\n")}`);
   }
 
   if (sections.length === 0) return "";

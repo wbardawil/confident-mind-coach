@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/utils/db";
+import { writeJournalEntry } from "@/lib/coaching/journal";
 import { getCurrentUser } from "@/lib/utils/user";
 import { buildAarPrompt } from "@/lib/coaching/aar";
 import { aarResponseSchema, type AarResponse } from "@/lib/ai/schemas";
@@ -72,6 +73,12 @@ export async function submitAar(data: AarInput): Promise<AarResult> {
       },
     }),
   ]);
+
+  writeJournalEntry({
+    userId: user.id,
+    type: "aar",
+    context: `AAR — What happened: ${input.whatHappened} | So what: ${input.soWhat} | Now what: ${input.nowWhat}\n\nCoach lessons: ${aiData.lessonsLearned}\nImprovement plan: ${aiData.improvementPlan}`,
+  });
 
   revalidatePath("/aar");
   revalidatePath("/dashboard");
