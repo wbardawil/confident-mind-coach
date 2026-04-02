@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { SignOutButton } from "@/components/settings/sign-out-button";
+import { SubscriptionCard } from "@/components/settings/subscription-card";
 import { DocumentUpload } from "@/components/settings/document-upload";
 import { DocumentList } from "@/components/settings/document-list";
 import { getDocuments } from "@/lib/actions/documents";
@@ -33,6 +34,13 @@ export default async function SettingsPage() {
           Manage your account and coaching profile.
         </p>
       </div>
+
+      <SubscriptionCard
+        tier={settings.subscriptionTier}
+        status={settings.subscriptionStatus}
+      />
+
+      <Separator className="my-8" />
 
       <SettingsForm settings={settings} />
 

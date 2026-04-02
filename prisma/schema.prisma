@@ -17,6 +17,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  stripeCustomerId   String?  @unique
+  subscriptionTier   String   @default("free") // free | pro
+  subscriptionId     String?  // Stripe subscription ID
+  subscriptionStatus String?  // active | canceled | past_due | trialing
+
   profile          Profile?
   documents        UserDocument[]
   achievements     Achievement[]
@@ -60,6 +65,7 @@ model Profile {
   baselineScore        Int // 1–10
   coachModel           String   @default("haiku-4.5") // haiku-4.5 | sonnet-3.5 | sonnet-4 | opus-3
   timezone             String   @default("UTC") // IANA timezone e.g. "America/Mexico_City"
+  language             String   @default("English") // coaching response language
   onboardingCompleted  Boolean  @default(false)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
