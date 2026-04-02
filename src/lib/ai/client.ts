@@ -22,7 +22,7 @@ const COACH_MODELS: Record<string, string> = {
   "haiku-4.5": "claude-haiku-4-5-20251001",
   "sonnet-3.5": "claude-3-5-sonnet-20241022",
   "sonnet-4": "claude-sonnet-4-20250514",
-  "opus-3": "claude-3-opus-20240229",
+  "opus-3": "claude-opus-4-20250514",
 };
 
 const DEFAULT_MODEL = "haiku-4.5";
@@ -37,7 +37,7 @@ const MODEL_LABELS: Record<string, string> = {
   "haiku-4.5": "Haiku 4.5",
   "sonnet-3.5": "Sonnet 3.5",
   "sonnet-4": "Sonnet 4",
-  "opus-3": "Opus 3",
+  "opus-3": "Opus 4",
 };
 
 /** Get the display label for a model preference key. */
@@ -111,7 +111,13 @@ async function callAnthropicOnce({
     model: STRUCTURED_MODEL,
     max_tokens: maxTokens,
     temperature,
-    system: systemPrompt,
+    system: [
+      {
+        type: "text" as const,
+        text: systemPrompt,
+        cache_control: { type: "ephemeral" as const },
+      },
+    ],
     messages: [
       {
         role: "user",
@@ -190,7 +196,13 @@ export function streamCoaching({
     model: model ?? COACH_MODELS[DEFAULT_MODEL],
     max_tokens: maxTokens,
     temperature,
-    system: systemPrompt,
+    system: [
+      {
+        type: "text" as const,
+        text: systemPrompt,
+        cache_control: { type: "ephemeral" as const },
+      },
+    ],
     messages,
   });
 }
