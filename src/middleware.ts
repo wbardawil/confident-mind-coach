@@ -31,6 +31,7 @@ export default async function middleware(
     "/sign-in(.*)",
     "/sign-up(.*)",
     "/api/webhooks/clerk",
+    "/api/stripe/webhook",
   ]);
 
   const handler = clerkMiddleware((auth, request) => {

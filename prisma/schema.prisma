@@ -17,6 +17,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  stripeCustomerId   String?  @unique
+  subscriptionTier   String   @default("free") // free | pro
+  subscriptionId     String?  // Stripe subscription ID
+  subscriptionStatus String?  // active | canceled | past_due | trialing
+
   profile          Profile?
   documents        UserDocument[]
   achievements     Achievement[]

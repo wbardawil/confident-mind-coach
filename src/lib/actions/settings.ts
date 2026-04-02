@@ -23,6 +23,8 @@ export interface UserSettings {
   baselineScore: number | null;
   coachModel: string;
   language: string;
+  subscriptionTier: string;
+  subscriptionStatus: string | null;
   memberSince: Date;
 }
 
@@ -46,6 +48,8 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     baselineScore: profile?.baselineScore ?? null,
     coachModel: profile?.coachModel ?? "haiku-4.5",
     language: profile?.language ?? "English",
+    subscriptionTier: user.subscriptionTier ?? "free",
+    subscriptionStatus: user.subscriptionStatus ?? null,
     memberSince: user.createdAt,
   };
 }
