@@ -23,6 +23,7 @@ import { ClerkLoaded } from "@/components/providers/clerk-loaded";
 const navItems = [
   { href: ROUTES.DASHBOARD, label: "Dashboard", icon: LayoutDashboard },
   { href: ROUTES.COACH, label: "Coach", icon: MessageCircle },
+  { href: ROUTES.INSTANT_RESET, label: "Instant Reset", icon: Zap },
   { href: ROUTES.GOALS, label: "Goals", icon: Target },
   { href: ROUTES.DAILY_ESP, label: "Daily ESP", icon: Sun },
   { href: ROUTES.TOP_TEN, label: "Top Ten", icon: Trophy },
