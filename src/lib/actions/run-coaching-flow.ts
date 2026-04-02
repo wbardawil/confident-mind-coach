@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
 import { scanForCrisis } from "@/lib/safety/crisis-detect";
+import { getSessionLimit } from "@/lib/stripe/config";
 import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { generateCoaching, type CoachingRequest } from "@/lib/ai/client";
 import { parseAiResponse } from "@/lib/ai/parse";
@@ -82,6 +83,26 @@ export async function runCoachingFlow<TInput, TOutput>(
   const user = await getCurrentUser();
   if (!user) {
     return { ok: false, result: { success: false, error: "Not authenticated" } };
+  }
+
+  // 1b. Free tier rate limit (3 sessions/day)
+  const tier = user.subscriptionTier ?? "free";
+  const limit = getSessionLimit(tier);
+  if (limit !== Infinity) {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const todayCount = await db.coachingSession.count({
+      where: { userId: user.id, createdAt: { gte: startOfDay } },
+    });
+    if (todayCount >= limit) {
+      return {
+        ok: false,
+        result: {
+          success: false,
+          error: `You've reached your daily limit of ${limit} coaching sessions. Upgrade to Pro for unlimited access.`,
+        },
+      };
+    }
   }
 
   // 2. Validate input

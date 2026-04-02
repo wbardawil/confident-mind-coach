@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 import { streamCoaching, resolveCoachModel, getModelLabel } from "@/lib/ai/client";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
 import { getCoachingMemory } from "@/lib/coaching/memory";
+import { getEffectiveModel } from "@/lib/stripe/gate";
 import { scanForCrisis } from "@/lib/safety/crisis-detect";
 import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { db } from "@/lib/utils/db";
@@ -16,6 +17,15 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // 1b. Tier check — conversational coach requires Pro+
+  const tier = user.subscriptionTier ?? "free";
+  if (tier === "free") {
+    return NextResponse.json(
+      { error: "Upgrade to Pro to access the conversational coach." },
+      { status: 403 },
+    );
   }
 
   // 2. Validate input
@@ -116,10 +126,11 @@ export async function POST(req: NextRequest) {
 
   const messages = buildChatMessages(history);
 
-  // 8. Stream the response using the user's preferred model
+  // 8. Stream the response using the user's preferred model (gated by tier)
   const modelPreference = profile?.coachModel ?? null;
-  const coachModel = await resolveCoachModel(modelPreference);
-  const resolvedLabel = getModelLabel(modelPreference);
+  const effectivePreference = getEffectiveModel(tier, modelPreference ?? "haiku-4.5");
+  const coachModel = await resolveCoachModel(effectivePreference);
+  const resolvedLabel = getModelLabel(effectivePreference);
   const stream = streamCoaching({ systemPrompt, messages, model: coachModel });
 
   // 9. Build a ReadableStream that forwards text deltas and persists the result

@@ -28,7 +28,7 @@ const {
 
 vi.mock("@/lib/utils/db", () => ({
   db: {
-    coachingSession: { create: mockCoachingSessionCreate },
+    coachingSession: { create: mockCoachingSessionCreate, count: vi.fn().mockResolvedValue(0) },
     ledgerEntry: { create: mockLedgerEntryCreate },
     $transaction: mockTransaction,
   },
@@ -37,6 +37,7 @@ vi.mock("@/lib/utils/db", () => ({
 vi.mock("@/lib/utils/user", () => ({
   getCurrentUser: vi.fn().mockResolvedValue({
     id: "user-1",
+    subscriptionTier: "pro",
     profile: { role: "athlete", strengths: ["focus", "grit"] },
   }),
 }));
