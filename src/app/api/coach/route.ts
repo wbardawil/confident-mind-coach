@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 import { streamCoaching, resolveCoachModel, getModelLabel } from "@/lib/ai/client";
+import { writeJournalEntry } from "@/lib/coaching/journal";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
 import { getCoachingMemory } from "@/lib/coaching/memory";
 import { getEffectiveModel } from "@/lib/stripe/gate";
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
       take: 10,
       select: { title: true, description: true },
     }),
-    getCoachingMemory(user.id),
+    getCoachingMemory(user.id, tier),
   ]);
 
   let systemPrompt = buildCoachSystemPrompt(
@@ -161,6 +162,15 @@ export async function POST(req: NextRequest) {
             role: "assistant",
             content: fullResponse,
           },
+        });
+
+        // Fire-and-forget: coach writes session notes
+        const lastUserMsg = messages[messages.length - 1]?.content ?? "";
+        writeJournalEntry({
+          userId: user.id,
+          type: "session",
+          sourceId: session!.id,
+          context: `Chat session — User said: "${lastUserMsg.slice(0, 300)}"\n\nCoach responded: "${fullResponse.slice(0, 300)}"`,
         });
 
         controller.enqueue(

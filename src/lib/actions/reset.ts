@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/utils/db";
+import { writeJournalEntry } from "@/lib/coaching/journal";
 import { getCurrentUser } from "@/lib/utils/user";
 import { buildResetPrompt } from "@/lib/coaching/reset";
 import { resetResponseSchema, type ResetResponse } from "@/lib/ai/schemas";
@@ -92,6 +93,13 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
       },
     }),
   ]);
+
+  // Fire-and-forget: coaching notes
+  writeJournalEntry({
+    userId: user.id,
+    type: "reset",
+    context: `Reset — What happened: ${input.eventDescription} | Emotional state: ${input.emotionalState} | Confidence: ${input.confidenceScore}/10\n\nCoach acknowledgement: ${aiData.acknowledgement}\nSafeguard: ${aiData.safeguard}\nNext action: ${aiData.nextActionCue}\nWithdrawal: ${aiData.withdrawalImpact.scoreDelta} | Recovery: +${aiData.recoveryImpact.scoreDelta}`,
+  });
 
   revalidatePath("/reset");
   revalidatePath("/dashboard");

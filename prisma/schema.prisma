@@ -35,6 +35,7 @@ model User {
   coachingSessions CoachingSession[]
   chatSessions     ChatSession[]
   enrollments      ChallengeEnrollment[]
+  journalEntries   CoachingJournal[]
 }
 
 // ─── USER DOCUMENT (uploaded context files) ────
@@ -248,4 +249,17 @@ model ChallengeDayEntry {
   aiResponse   String? // AI coaching for this day
   completedAt  DateTime            @default(now())
   createdAt    DateTime            @default(now())
+}
+
+// ─── COACHING JOURNAL (AI-authored coaching notes) ──
+
+model CoachingJournal {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // session | esp | reset | pregame | aar | challenge | weekly | monthly | quarterly
+  sourceId  String? // optional link to originating session/entry
+  content   String // AI-written coaching note
+  period    String? // for syntheses: "2026-W14", "2026-03", "2026-Q1"
+  createdAt DateTime @default(now())
 }

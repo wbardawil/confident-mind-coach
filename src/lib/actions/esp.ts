@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
+import { writeJournalEntry } from "@/lib/coaching/journal";
 import { buildEspPrompt } from "@/lib/coaching/esp";
 import { espResponseSchema, type EspResponse } from "@/lib/ai/schemas";
 import { espInputSchema, type EspInput } from "@/lib/validators/esp";
@@ -98,6 +99,13 @@ export async function submitEsp(data: EspInput): Promise<EspResult> {
         goalId: input.goalId || null,
       },
     });
+  });
+
+  // Fire-and-forget: AI writes coaching notes about this interaction
+  writeJournalEntry({
+    userId: user.id,
+    type: "esp",
+    context: `ESP Entry — Effort: ${input.effort} | Success: ${input.success} | Progress: ${input.progress}\n\nCoach reflection: ${aiData.reflection}\nAffirmation given: ${aiData.affirmation}`,
   });
 
   revalidatePath("/daily-esp");
