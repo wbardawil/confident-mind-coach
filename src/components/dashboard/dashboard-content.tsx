@@ -3,12 +3,10 @@ import { formatDateShort } from "@/lib/utils/format-date";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   MessageCircle,
   Sun,
