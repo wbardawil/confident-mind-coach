@@ -32,10 +32,25 @@ The user has completed a performance event and is doing an After Action Review (
 
 2. improvementPlan — Provide 2-3 specific, actionable steps the user can take to improve next time. Each step should be concrete enough to act on immediately. Reference the user's own "Now What" thinking and build on it. Keep it to 3-5 sentences.
 
+3. ledgerImpact — Assess the quality and depth of the user's review and assign a confidence deposit (0-3 points). Include a short title and description.
+
+SCORING GUIDE — be honest, not generous:
+  0 = Empty, vague, or meaningless input (e.g. "it happened", "whatever", filler with no real reflection). Do NOT reward low-effort entries.
+  1 = Minimal — described an event but little genuine analysis of why it matters or what to do differently
+  2 = Solid — honest reflection with specific lessons and actionable next steps
+  3 = Excellent — deep, self-aware debrief showing real insight, accountability, and concrete growth plan
+
+If the input is filler or meaningless, give 0 points. Reviews that don't extract real lessons don't build confidence.
+
 Respond with ONLY valid JSON in this exact shape — no markdown, no explanation outside the JSON:
 {
   "lessonsLearned": "...",
-  "improvementPlan": "..."
+  "improvementPlan": "...",
+  "ledgerImpact": {
+    "title": "...",
+    "description": "...",
+    "scoreDelta": <number 0-3>
+  }
 }`;
 
   const userMessage = `Here is my After Action Review:

@@ -88,18 +88,21 @@ export async function submitEsp(data: EspInput): Promise<EspResult> {
       },
     });
 
-    await tx.ledgerEntry.create({
-      data: {
-        userId: user.id,
-        type: LEDGER_TYPES.DEPOSIT,
-        title: aiData.ledgerImpact.title,
-        description: aiData.ledgerImpact.description,
-        scoreDelta: aiData.ledgerImpact.scoreDelta,
-        sourceId: espEntry.id,
-        sourceType: LEDGER_SOURCE_TYPES.ESP,
-        goalId: input.goalId || null,
-      },
-    });
+    // Only create a ledger deposit if the AI scored > 0 (quality gate)
+    if (aiData.ledgerImpact.scoreDelta > 0) {
+      await tx.ledgerEntry.create({
+        data: {
+          userId: user.id,
+          type: LEDGER_TYPES.DEPOSIT,
+          title: aiData.ledgerImpact.title,
+          description: aiData.ledgerImpact.description,
+          scoreDelta: aiData.ledgerImpact.scoreDelta,
+          sourceId: espEntry.id,
+          sourceType: LEDGER_SOURCE_TYPES.ESP,
+          goalId: input.goalId || null,
+        },
+      });
+    }
   });
 
   // Increment goal evidence count if linked

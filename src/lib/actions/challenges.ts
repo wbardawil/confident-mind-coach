@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
@@ -114,22 +115,48 @@ The user was asked: "${dayConfig.prompt}"
 
 Your coaching instructions for this day: ${dayConfig.aiInstruction}
 
-Respond with 3-5 sentences of personalized coaching. Be warm, specific, and grounded in their actual words. End with encouragement for tomorrow.${languageInstruction}`;
+Respond with ONLY valid JSON in this exact shape — no markdown, no explanation outside the JSON:
+{
+  "coaching": "<your 3-5 sentence coaching response — warm, specific, grounded in their words, ending with encouragement for tomorrow>",
+  "scoreDelta": <number 0-3>
+}
+
+SCORING GUIDE for scoreDelta — be honest, not generous:
+  0 = Empty, vague, or meaningless reflection (e.g. "done", "ok", filler with no substance). Do NOT reward low-effort entries.
+  1 = Minimal — engaged but generic, little personal detail
+  2 = Solid — specific, honest reflection showing genuine engagement with the exercise
+  3 = Excellent — deep, vulnerable, shows real growth and connection to the challenge theme
+
+If the reflection is filler or meaningless, give 0 points.${languageInstruction}`;
 
   let aiResponse: string;
+  let qualityScore = 0;
   try {
-    aiResponse = await generateCoaching({
+    const raw = await generateCoaching({
       systemPrompt,
       userMessage: reflection,
     });
+    try {
+      const parsed = JSON.parse(raw);
+      aiResponse = parsed.coaching || raw;
+      qualityScore = Math.max(0, Math.min(3, Math.round(Number(parsed.scoreDelta) || 0)));
+    } catch {
+      // If JSON parsing fails, use raw response with 0 points (safe fallback)
+      aiResponse = raw;
+      qualityScore = 0;
+    }
   } catch {
     aiResponse = "Great reflection. Keep building on this tomorrow.";
+    qualityScore = 0;
   }
 
-  // Persist day entry, advance enrollment, and create ledger deposit
+  // Bonus point for completing the full challenge
   const isLastDay = day >= challenge.duration;
+  const completionBonus = isLastDay ? 2 : 0;
+  const totalScore = qualityScore + completionBonus;
 
-  await db.$transaction([
+  // Persist day entry, advance enrollment, and create ledger deposit
+  const dbOps: Prisma.PrismaPromise<unknown>[] = [
     db.challengeDayEntry.create({
       data: {
         enrollmentId: enrollment.id,
@@ -146,17 +173,27 @@ Respond with 3-5 sentences of personalized coaching. Be warm, specific, and grou
         completedAt: isLastDay ? new Date() : null,
       },
     }),
-    db.ledgerEntry.create({
-      data: {
-        userId: user.id,
-        type: LEDGER_TYPES.DEPOSIT,
-        title: `${challenge.title} — Day ${day}`,
-        description: dayConfig.title,
-        scoreDelta: isLastDay ? 5 : 2, // bonus points for completing the challenge
-        sourceType: LEDGER_SOURCE_TYPES.ESP, // uses ESP as source type for challenge reflections
-      },
-    }),
-  ]);
+  ];
+
+  // Only create a ledger deposit if there are points earned
+  if (totalScore > 0) {
+    dbOps.push(
+      db.ledgerEntry.create({
+        data: {
+          userId: user.id,
+          type: LEDGER_TYPES.DEPOSIT,
+          title: `${challenge.title} — Day ${day}`,
+          description: isLastDay
+            ? `${dayConfig.title} (Challenge completed!)`
+            : dayConfig.title,
+          scoreDelta: totalScore,
+          sourceType: LEDGER_SOURCE_TYPES.ESP,
+        },
+      }),
+    );
+  }
+
+  await db.$transaction(dbOps);
 
   revalidatePath(`/challenges/${challengeSlug}`);
   revalidatePath("/dashboard");

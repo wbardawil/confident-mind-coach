@@ -63,6 +63,19 @@ describe("buildEspPrompt", () => {
     expect(result.systemPrompt).toContain("ONLY valid JSON");
     expect(result.systemPrompt).toContain("no markdown");
   });
+
+  it("includes quality scoring guide with 0 as valid score", async () => {
+    const result = await buildEspPrompt({
+      effort: "E",
+      success: "S",
+      progress: "P",
+      userId: "test-user",
+      profile: null,
+    });
+    expect(result.systemPrompt).toContain("SCORING GUIDE");
+    expect(result.systemPrompt).toContain("0 =");
+    expect(result.systemPrompt).toContain("0-5");
+  });
 });
 
 describe("buildPregamePrompt", () => {
@@ -91,7 +104,7 @@ describe("buildPregamePrompt", () => {
     expect(result.systemPrompt).toContain("leadership");
   });
 
-  it("instructs JSON-only output", () => {
+  it("instructs JSON-only output with ledgerImpact", () => {
     const result = buildPregamePrompt({
       upcomingEvent: "E",
       confidenceLevel: 5,
@@ -102,6 +115,9 @@ describe("buildPregamePrompt", () => {
     expect(result.systemPrompt).toContain("ONLY valid JSON");
     expect(result.systemPrompt).toContain("takeStock");
     expect(result.systemPrompt).toContain("enoughStatement");
+    expect(result.systemPrompt).toContain("ledgerImpact");
+    expect(result.systemPrompt).toContain("SCORING GUIDE");
+    expect(result.systemPrompt).toContain("0-3");
   });
 });
 
@@ -167,7 +183,7 @@ describe("buildAarPrompt", () => {
     expect(result.systemPrompt).toContain("strategy");
   });
 
-  it("instructs JSON-only output with correct shape", () => {
+  it("instructs JSON-only output with ledgerImpact", () => {
     const result = buildAarPrompt({
       whatHappened: "W",
       soWhat: "S",
@@ -177,5 +193,8 @@ describe("buildAarPrompt", () => {
     expect(result.systemPrompt).toContain("ONLY valid JSON");
     expect(result.systemPrompt).toContain("lessonsLearned");
     expect(result.systemPrompt).toContain("improvementPlan");
+    expect(result.systemPrompt).toContain("ledgerImpact");
+    expect(result.systemPrompt).toContain("SCORING GUIDE");
+    expect(result.systemPrompt).toContain("0-3");
   });
 });

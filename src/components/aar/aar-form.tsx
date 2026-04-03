@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookOpen, Lightbulb } from "lucide-react";
+import { BookOpen, Lightbulb, TrendingUp } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EscalationBanner } from "@/components/shared/escalation-banner";
 import { GoalSelector } from "@/components/shared/goal-selector";
 import { submitAar, type AarResult } from "@/lib/actions/aar";
@@ -161,6 +162,27 @@ export function AarForm() {
             <CardContent>
               <p className="text-sm leading-relaxed">
                 {result.data.improvementPlan}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Confidence Deposit */}
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-3 pb-2">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              <CardTitle className="text-base">Confidence Deposit</CardTitle>
+              <Badge variant="secondary" className="ml-auto">
+                {result.data.ledgerImpact.scoreDelta > 0
+                  ? `+${result.data.ledgerImpact.scoreDelta}`
+                  : "No deposit"}
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm font-medium">
+                {result.data.ledgerImpact.title}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {result.data.ledgerImpact.description}
               </p>
             </CardContent>
           </Card>

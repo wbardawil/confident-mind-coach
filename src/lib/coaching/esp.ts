@@ -44,7 +44,17 @@ The user has completed their daily ESP reflection (Effort, Success, Progress). Y
 
 2. Create a first-person affirmation statement (1 sentence) the user can repeat to themselves. It should be grounded in the evidence they provided, not generic.
 
-3. Determine a confidence ledger deposit (1-5 points) based on how meaningful the combined effort, success, and progress are. Include a short title and description for the deposit.
+3. Determine a confidence ledger deposit (0-5 points) based on the quality, specificity, and meaningfulness of the combined effort, success, and progress. Include a short title and description for the deposit.
+
+SCORING GUIDE — be honest, not generous:
+  0 = Empty, vague, or meaningless input (e.g. "nothing", "idk", "stuff", single words with no substance). Do NOT reward low-effort entries.
+  1 = Minimal effort — acknowledged something but vague or generic (e.g. "I tried today")
+  2 = Basic reflection — some specific detail but surface-level
+  3 = Solid reflection — clear, specific examples of effort, success, or progress
+  4 = Strong reflection — detailed, self-aware, connects actions to growth
+  5 = Exceptional — vivid, deeply honest, shows real insight and evidence of capability
+
+If the input is meaningless or empty filler, give 0 points. Confidence must be built on real evidence, not participation trophies.
 
 Respond with ONLY valid JSON in this exact shape — no markdown, no explanation outside the JSON:
 {
@@ -53,7 +63,7 @@ Respond with ONLY valid JSON in this exact shape — no markdown, no explanation
   "ledgerImpact": {
     "title": "...",
     "description": "...",
-    "scoreDelta": <number 1-5>
+    "scoreDelta": <number 0-5>
   }
 }`;
 
