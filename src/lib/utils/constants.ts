@@ -16,6 +16,7 @@ export const ROUTES = {
   CHALLENGES: "/challenges",
   GOALS: "/goals",
   LEDGER: "/ledger",
+  GUIDE: "/guide",
   SETTINGS: "/settings",
 } as const;
 

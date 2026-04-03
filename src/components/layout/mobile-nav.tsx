@@ -16,6 +16,7 @@ import {
   BookOpen,
   MessageCircle,
   Settings,
+  HelpCircle,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ const navGroups = [
       { href: ROUTES.COACH, label: "Coach", icon: MessageCircle },
       { href: ROUTES.DAILY_ESP, label: "Daily ESP", icon: Sun },
       { href: ROUTES.INSTANT_RESET, label: "Instant Reset", icon: Zap },
+      { href: ROUTES.GUIDE, label: "Guide", icon: HelpCircle },
     ],
   },
   {
