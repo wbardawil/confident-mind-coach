@@ -9,6 +9,7 @@ import { buildAarPrompt } from "@/lib/coaching/aar";
 import { aarResponseSchema, type AarResponse } from "@/lib/ai/schemas";
 import { aarInputSchema, type AarInput } from "@/lib/validators/aar";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
+import { incrementGoalEvidence } from "@/lib/actions/goal-evidence";
 import {
   runCoachingFlow,
   type CoachingFlaggedResult,
@@ -73,6 +74,8 @@ export async function submitAar(data: AarInput): Promise<AarResult> {
       },
     }),
   ]);
+
+  await incrementGoalEvidence(input.goalId || null);
 
   writeJournalEntry({
     userId: user.id,
