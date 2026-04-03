@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, KeyboardEvent, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,13 +24,6 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     }
   }, [onSend, disabled]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   const handleInput = () => {
     const el = textareaRef.current;
     if (!el) return;
@@ -46,7 +39,6 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         className="min-h-[44px] max-h-48 resize-none overflow-y-auto"
         rows={2}
         disabled={disabled}
-        onKeyDown={handleKeyDown}
         onInput={handleInput}
       />
       <Button
