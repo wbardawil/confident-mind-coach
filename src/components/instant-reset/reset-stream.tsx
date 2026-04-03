@@ -89,8 +89,17 @@ export function ResetStream() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setMessages([]);
+      // If we already have content, the stream mostly worked — treat as done
+      setMessages((prev) => {
+        const hasContent = prev.some((m) => m.role === "assistant" && m.content.length > 0);
+        if (hasContent) {
+          setInitialDone(true);
+          return prev;
+        }
+        // No content at all — real failure
+        setError(err instanceof Error ? err.message : "Something went wrong");
+        return [];
+      });
     } finally {
       setIsStreaming(false);
     }
@@ -186,10 +195,13 @@ export function ResetStream() {
           }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
-        setMessages((prev) =>
-          prev.filter((m) => !(m.id === assistantId && m.content === "")),
-        );
+        // Only show error if the assistant message has no content
+        setMessages((prev) => {
+          const msg = prev.find((m) => m.id === assistantId);
+          if (msg && msg.content.length > 0) return prev; // partial content = good enough
+          setError(err instanceof Error ? err.message : "Something went wrong");
+          return prev.filter((m) => m.id !== assistantId);
+        });
       } finally {
         setIsStreaming(false);
       }
