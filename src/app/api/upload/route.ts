@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
 import { extractText } from "@/lib/utils/extract-text";
+import { extractPersonalityFromDocument } from "@/lib/coaching/personality";
 import {
   ALLOWED_FILE_TYPES,
   MAX_FILE_SIZE,
@@ -120,6 +121,34 @@ export async function POST(request: NextRequest) {
       extractedContent,
     },
   });
+
+  // Fire-and-forget: auto-extract personality data from personality/assessment docs
+  if (categoryResult.data === "personality" || categoryResult.data === "assessment") {
+    extractPersonalityFromDocument(extractedContent, file.name)
+      .then(async (result) => {
+        if (!result.success || result.data.noAssessmentFound || result.data.assessments.length === 0) {
+          return;
+        }
+        await db.$transaction(
+          result.data.assessments.map((assessment) =>
+            db.personalityAssessment.create({
+              data: {
+                userId: user.id,
+                documentId: document.id,
+                framework: assessment.framework,
+                label: assessment.label,
+                dimensions: assessment.dimensions,
+                summary: assessment.summary,
+                coachingTips: assessment.coachingTips,
+              },
+            }),
+          ),
+        );
+      })
+      .catch((err) => {
+        console.error("Auto personality extraction failed:", err);
+      });
+  }
 
   return NextResponse.json({
     id: document.id,

@@ -35,7 +35,8 @@ model User {
   coachingSessions CoachingSession[]
   chatSessions     ChatSession[]
   enrollments      ChallengeEnrollment[]
-  journalEntries   CoachingJournal[]
+  journalEntries           CoachingJournal[]
+  personalityAssessments   PersonalityAssessment[]
 }
 
 // ─── USER DOCUMENT (uploaded context files) ────
@@ -72,6 +73,23 @@ model Profile {
   onboardingCompleted  Boolean  @default(false)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+}
+
+// ─── PERSONALITY ASSESSMENT (structured personality data) ──
+
+model PersonalityAssessment {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentId   String?  // link to source UserDocument (null if manually entered)
+  framework    String   // DISC | MBTI | EA | StrengthsFinder | VIA | Enneagram | Big5 | other
+  label        String   // display name e.g. "DISC Assessment (2024)"
+  dimensions   Json     // structured scores: { "D": 85, "I": 42, "S": 60, "C": 30 } etc.
+  summary      String   // AI-generated plain-English summary
+  coachingTips String   // AI-generated coaching implications
+  verified     Boolean  @default(false) // user has reviewed and confirmed accuracy
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 // ─── ACHIEVEMENT (Top Ten confidence memories) ──

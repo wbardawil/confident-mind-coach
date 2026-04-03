@@ -8,6 +8,7 @@ import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { generateCoaching, type CoachingRequest } from "@/lib/ai/client";
 import { parseAiResponse } from "@/lib/ai/parse";
 import { friendlyAiError } from "@/lib/utils/errors";
+import { getPersonalityContext } from "@/lib/coaching/personality";
 
 // ─── Shared result types ──────────────────────
 
@@ -145,6 +146,12 @@ export async function runCoachingFlow<TInput, TOutput>(
   const language = user.profile?.language;
   if (language && language !== "English") {
     prompt.systemPrompt += `\n\nIMPORTANT: Respond entirely in ${language}. All coaching text, affirmations, and feedback must be in ${language}.`;
+  }
+
+  // Inject structured personality context into the system prompt
+  const personalityContext = await getPersonalityContext(user.id);
+  if (personalityContext) {
+    prompt.systemPrompt += `\n\n${personalityContext}`;
   }
 
   let rawResponse: string;

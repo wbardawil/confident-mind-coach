@@ -85,6 +85,10 @@ vi.mock("@prisma/client", () => ({
   },
 }));
 
+vi.mock("@/lib/coaching/personality", () => ({
+  getPersonalityContext: vi.fn().mockResolvedValue(""),
+}));
+
 // ─── Import after mocks ────────────────────────
 import { submitReset } from "@/lib/actions/reset";
 

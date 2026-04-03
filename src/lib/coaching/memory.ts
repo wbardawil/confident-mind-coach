@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/utils/db";
 import { getGoalContext } from "@/lib/actions/goals";
+import { getPersonalityContext } from "@/lib/coaching/personality";
 
 /**
  * Memory depth by subscription tier.
@@ -34,6 +35,7 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
     goalContext,
     journalNotes,
     journalSyntheses,
+    personalityContext,
   ] = await Promise.all([
     // ESP entries (depth by tier)
     db.eSPEntry.findMany({
@@ -125,9 +127,17 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
       take: 20,
       select: { type: true, content: true, period: true, createdAt: true },
     }),
+
+    // Structured personality assessment data
+    getPersonalityContext(userId),
   ]);
 
   const sections: string[] = [];
+
+  // ── Structured personality data (highest-value context) ──
+  if (personalityContext) {
+    sections.push(personalityContext);
+  }
 
   // ── Past chat sessions (summarized for relevance) ──
   if (pastChatSessions.length > 0) {

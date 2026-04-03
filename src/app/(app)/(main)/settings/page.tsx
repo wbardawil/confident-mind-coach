@@ -6,13 +6,16 @@ import { SignOutButton } from "@/components/settings/sign-out-button";
 import { SubscriptionCard } from "@/components/settings/subscription-card";
 import { DocumentUpload } from "@/components/settings/document-upload";
 import { DocumentList } from "@/components/settings/document-list";
+import { PersonalityAssessments } from "@/components/settings/personality-assessments";
 import { getDocuments } from "@/lib/actions/documents";
+import { getPersonalityAssessments } from "@/lib/actions/personality";
 import { MAX_DOCUMENTS_PER_USER } from "@/lib/validators/documents";
 
 export default async function SettingsPage() {
-  const [settings, documents] = await Promise.all([
+  const [settings, documents, assessments] = await Promise.all([
     getUserSettings(),
     getDocuments(),
+    getPersonalityAssessments(),
   ]);
 
   if (!settings) {
@@ -67,6 +70,24 @@ export default async function SettingsPage() {
             </h3>
             <DocumentList documents={documents} />
           </div>
+        </CardContent>
+      </Card>
+
+      <Separator className="my-8" />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Personality Profile</CardTitle>
+          <CardDescription>
+            Structured personality data extracted from your uploaded assessments.
+            The coach uses this to tailor strategies to your wiring.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PersonalityAssessments
+            assessments={assessments}
+            documents={documents}
+          />
         </CardContent>
       </Card>
 
