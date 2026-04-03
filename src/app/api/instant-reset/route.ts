@@ -68,13 +68,17 @@ ${coachingMemory ? `Coaching context:\n${coachingMemory}` : ""}
 
 APPROACH FOR THIS RESET: ${approach}
 
-Rules:
-- 5-8 sentences MAXIMUM. Be brief and powerful.
-- No headers, no labels, no structure markers. Just talk to them.
-- Reference THEIR specific evidence, strengths, and achievements — not generic advice.
-- End with ONE concrete thing they can do in the next 30 seconds.
-- Vary your tone and opening every time. Never start the same way twice.
-- This is a 15-second read, not a therapy session.`;
+FORMAT RULES (critical):
+- 4-5 SHORT sentences. Each sentence gets its own paragraph (double newline between them).
+- One idea per sentence. No compound sentences. No dashes or semicolons joining thoughts.
+- Keep each sentence under 20 words.
+- No headers, labels, bold, or structure markers.
+- End with ONE concrete 30-second action on its own line.
+
+CONTENT RULES:
+- Reference THEIR specific evidence and achievements — not generic advice.
+- Vary your tone and opening every time.
+- This should feel like a text from a coach who knows you, not an essay.`;
 
   // Inject language preference
   const language = profile?.language;
@@ -93,7 +97,7 @@ Rules:
     systemPrompt,
     messages,
     model: coachModel,
-    maxTokens: 200,
+    maxTokens: 150,
     temperature: 0.7,
   });
 
