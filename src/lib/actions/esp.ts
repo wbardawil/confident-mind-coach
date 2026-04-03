@@ -9,6 +9,7 @@ import { buildEspPrompt } from "@/lib/coaching/esp";
 import { espResponseSchema, type EspResponse } from "@/lib/ai/schemas";
 import { espInputSchema, type EspInput } from "@/lib/validators/esp";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
+import { incrementGoalEvidence } from "@/lib/actions/goal-evidence";
 import {
   runCoachingFlow,
   type CoachingFlaggedResult,
@@ -100,6 +101,9 @@ export async function submitEsp(data: EspInput): Promise<EspResult> {
       },
     });
   });
+
+  // Increment goal evidence count if linked
+  await incrementGoalEvidence(input.goalId || null);
 
   // Fire-and-forget: AI writes coaching notes about this interaction
   writeJournalEntry({

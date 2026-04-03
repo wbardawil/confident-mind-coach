@@ -9,6 +9,7 @@ import { buildResetPrompt } from "@/lib/coaching/reset";
 import { resetResponseSchema, type ResetResponse } from "@/lib/ai/schemas";
 import { resetInputSchema, type ResetInput } from "@/lib/validators/reset";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
+import { incrementGoalEvidence } from "@/lib/actions/goal-evidence";
 import { coerceToNumber } from "@/lib/utils/coerce";
 import {
   runCoachingFlow,
@@ -93,6 +94,8 @@ export async function submitReset(data: ResetInput): Promise<ResetResult> {
       },
     }),
   ]);
+
+  await incrementGoalEvidence(input.goalId || null);
 
   // Fire-and-forget: coaching notes
   writeJournalEntry({

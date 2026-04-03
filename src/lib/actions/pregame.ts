@@ -9,6 +9,7 @@ import { buildPregamePrompt } from "@/lib/coaching/pregame";
 import { pregameResponseSchema, type PregameResponse } from "@/lib/ai/schemas";
 import { pregameInputSchema, type PregameInput } from "@/lib/validators/pregame";
 import { COACHING_MODES, LEDGER_TYPES, LEDGER_SOURCE_TYPES } from "@/lib/utils/constants";
+import { incrementGoalEvidence } from "@/lib/actions/goal-evidence";
 import { coerceToNumber } from "@/lib/utils/coerce";
 import {
   runCoachingFlow,
@@ -79,6 +80,8 @@ export async function submitPregame(data: PregameInput): Promise<PregameResult> 
       },
     }),
   ]);
+
+  await incrementGoalEvidence(input.goalId || null);
 
   writeJournalEntry({
     userId: user.id,
