@@ -21,7 +21,7 @@ export interface LedgerSummary {
     createdAt: Date;
   }[];
   /** Daily running totals for the last 14 days (oldest first). */
-  trend: { date: string; cumulative: number }[];
+  trend: { date: string; cumulative: number; daily: number }[];
 }
 
 export async function getLedgerData(): Promise<LedgerSummary | null> {
@@ -93,7 +93,7 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
   }
 
   // Fill in all 14 days (including days with no entries) for a smooth chart
-  const trend: { date: string; cumulative: number }[] = [];
+  const trend: { date: string; cumulative: number; daily: number }[] = [];
 
   // Get the running total BEFORE the 14-day window
   const preWindowAggregate = await db.ledgerEntry.aggregate({
@@ -107,8 +107,9 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
 
   for (let i = 13; i >= 0; i--) {
     const key = toUTCDateKey(utcDaysAgo(i));
-    running += dailyMap.get(key) ?? 0;
-    trend.push({ date: key, cumulative: running });
+    const daily = dailyMap.get(key) ?? 0;
+    running += daily;
+    trend.push({ date: key, cumulative: running, daily });
   }
 
   return {
