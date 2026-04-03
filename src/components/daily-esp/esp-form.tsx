@@ -166,7 +166,9 @@ export function EspForm() {
               <TrendingUp className="h-5 w-5 text-green-600" />
               <CardTitle className="text-base">Confidence Deposit</CardTitle>
               <Badge variant="secondary" className="ml-auto">
-                +{result.data.ledgerImpact.scoreDelta}
+                {result.data.ledgerImpact.scoreDelta > 0
+                  ? `+${result.data.ledgerImpact.scoreDelta}`
+                  : "No deposit"}
               </Badge>
             </CardHeader>
             <CardContent>

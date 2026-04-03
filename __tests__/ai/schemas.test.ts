@@ -16,11 +16,20 @@ describe("espResponseSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects scoreDelta of 0", () => {
+  it("accepts scoreDelta of 0 for low-quality input", () => {
     const result = espResponseSchema.safeParse({
       reflection: "R",
       affirmation: "A",
       ledgerImpact: { title: "T", description: "D", scoreDelta: 0 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects negative scoreDelta", () => {
+    const result = espResponseSchema.safeParse({
+      reflection: "R",
+      affirmation: "A",
+      ledgerImpact: { title: "T", description: "D", scoreDelta: -1 },
     });
     expect(result.success).toBe(false);
   });
@@ -45,14 +54,47 @@ describe("espResponseSchema", () => {
 });
 
 describe("pregameResponseSchema", () => {
-  it("accepts valid response", () => {
+  it("accepts valid response with ledgerImpact", () => {
     const result = pregameResponseSchema.safeParse({
       takeStock: "You have strong skills.",
       situationAssessment: "This is a normal challenge.",
       enoughStatement: "I am enough for this moment.",
       visualizationPrompt: "Picture yourself succeeding.",
+      ledgerImpact: { title: "Pregame Prep", description: "Solid preparation", scoreDelta: 2 },
     });
     expect(result.success).toBe(true);
+  });
+
+  it("accepts scoreDelta of 0 for low-quality input", () => {
+    const result = pregameResponseSchema.safeParse({
+      takeStock: "T",
+      situationAssessment: "S",
+      enoughStatement: "E",
+      visualizationPrompt: "V",
+      ledgerImpact: { title: "T", description: "D", scoreDelta: 0 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects scoreDelta above 3", () => {
+    const result = pregameResponseSchema.safeParse({
+      takeStock: "T",
+      situationAssessment: "S",
+      enoughStatement: "E",
+      visualizationPrompt: "V",
+      ledgerImpact: { title: "T", description: "D", scoreDelta: 4 },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing ledgerImpact", () => {
+    const result = pregameResponseSchema.safeParse({
+      takeStock: "Stock",
+      situationAssessment: "Assessment",
+      enoughStatement: "Enough",
+      visualizationPrompt: "Visualize",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects missing fields", () => {
@@ -68,6 +110,7 @@ describe("pregameResponseSchema", () => {
       situationAssessment: "",
       enoughStatement: "",
       visualizationPrompt: "",
+      ledgerImpact: { title: "T", description: "D", scoreDelta: 1 },
     });
     expect(result.success).toBe(false);
   });
@@ -106,18 +149,46 @@ describe("resetResponseSchema", () => {
 });
 
 describe("aarResponseSchema", () => {
-  it("accepts valid response", () => {
+  it("accepts valid response with ledgerImpact", () => {
     const result = aarResponseSchema.safeParse({
       lessonsLearned: "Preparation matters more than natural ability.",
       improvementPlan: "Create a checklist before each meeting.",
+      ledgerImpact: { title: "Deep review", description: "Thorough debrief", scoreDelta: 2 },
     });
     expect(result.success).toBe(true);
+  });
+
+  it("accepts scoreDelta of 0 for low-quality input", () => {
+    const result = aarResponseSchema.safeParse({
+      lessonsLearned: "L",
+      improvementPlan: "P",
+      ledgerImpact: { title: "T", description: "D", scoreDelta: 0 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects scoreDelta above 3", () => {
+    const result = aarResponseSchema.safeParse({
+      lessonsLearned: "L",
+      improvementPlan: "P",
+      ledgerImpact: { title: "T", description: "D", scoreDelta: 4 },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing ledgerImpact", () => {
+    const result = aarResponseSchema.safeParse({
+      lessonsLearned: "L",
+      improvementPlan: "P",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects empty lessonsLearned", () => {
     const result = aarResponseSchema.safeParse({
       lessonsLearned: "",
       improvementPlan: "Plan",
+      ledgerImpact: { title: "T", description: "D", scoreDelta: 1 },
     });
     expect(result.success).toBe(false);
   });

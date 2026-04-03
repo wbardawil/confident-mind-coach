@@ -17,7 +17,7 @@ export const espResponseSchema = z.object({
   ledgerImpact: z.object({
     title: z.string().min(1),
     description: z.string().min(1),
-    scoreDelta: z.number().int().min(1).max(5),
+    scoreDelta: z.number().int().min(0).max(5),
   }),
 });
 
@@ -30,6 +30,11 @@ export const pregameResponseSchema = z.object({
   situationAssessment: z.string().min(1, "situationAssessment is required"),
   enoughStatement: z.string().min(1, "enoughStatement is required"),
   visualizationPrompt: z.string().min(1, "visualizationPrompt is required"),
+  ledgerImpact: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    scoreDelta: z.number().int().min(0).max(3),
+  }),
 });
 
 export type PregameResponse = z.infer<typeof pregameResponseSchema>;
@@ -59,6 +64,11 @@ export type ResetResponse = z.infer<typeof resetResponseSchema>;
 export const aarResponseSchema = z.object({
   lessonsLearned: z.string().min(1, "lessonsLearned is required"),
   improvementPlan: z.string().min(1, "improvementPlan is required"),
+  ledgerImpact: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    scoreDelta: z.number().int().min(0).max(3),
+  }),
 });
 
 export type AarResponse = z.infer<typeof aarResponseSchema>;

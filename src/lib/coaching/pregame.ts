@@ -37,12 +37,27 @@ The user is preparing for an upcoming performance event. Your job is to help the
 
 4. visualizationPrompt — Write a short mental rehearsal prompt (2-3 sentences) that guides the user to visualize themselves performing successfully in the upcoming event.
 
+5. ledgerImpact — Assess the quality of the user's preparation and assign a confidence deposit (0-3 points). Include a short title and description.
+
+SCORING GUIDE — be honest, not generous:
+  0 = Empty, vague, or meaningless input (e.g. "something", "idk", no real event or thought). Do NOT reward low-effort entries.
+  1 = Minimal — named an event but gave little thought to fears, strengths, or success definition
+  2 = Solid — specific event with genuine reflection on fears and what success looks like
+  3 = Excellent — detailed, honest preparation showing real self-awareness and intentional mental rehearsal
+
+If the input is filler or meaningless, give 0 points. Real preparation earns real deposits.
+
 Respond with ONLY valid JSON in this exact shape — no markdown, no explanation outside the JSON:
 {
   "takeStock": "...",
   "situationAssessment": "...",
   "enoughStatement": "...",
-  "visualizationPrompt": "..."
+  "visualizationPrompt": "...",
+  "ledgerImpact": {
+    "title": "...",
+    "description": "...",
+    "scoreDelta": <number 0-3>
+  }
 }`;
 
   const userMessage = `Here is my Pregame preparation:

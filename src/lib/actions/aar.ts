@@ -52,7 +52,7 @@ export async function submitAar(data: AarInput): Promise<AarResult> {
   const { user, input, aiData } = outcome;
 
   // Persist CoachingSession + LedgerEntry atomically
-  await db.$transaction([
+  const dbOps: Prisma.PrismaPromise<unknown>[] = [
     db.coachingSession.create({
       data: {
         userId: user.id,
@@ -62,18 +62,26 @@ export async function submitAar(data: AarInput): Promise<AarResult> {
         flagged: false,
       },
     }),
-    db.ledgerEntry.create({
-      data: {
-        userId: user.id,
-        type: LEDGER_TYPES.DEPOSIT,
-        title: "After Action Review",
-        description: `Reviewed: ${input.whatHappened.slice(0, 80)}`,
-        scoreDelta: 2,
-        sourceType: LEDGER_SOURCE_TYPES.AAR,
-        goalId: input.goalId || null,
-      },
-    }),
-  ]);
+  ];
+
+  // Only create a ledger deposit if the AI scored > 0 (quality gate)
+  if (aiData.ledgerImpact.scoreDelta > 0) {
+    dbOps.push(
+      db.ledgerEntry.create({
+        data: {
+          userId: user.id,
+          type: LEDGER_TYPES.DEPOSIT,
+          title: aiData.ledgerImpact.title,
+          description: aiData.ledgerImpact.description,
+          scoreDelta: aiData.ledgerImpact.scoreDelta,
+          sourceType: LEDGER_SOURCE_TYPES.AAR,
+          goalId: input.goalId || null,
+        },
+      }),
+    );
+  }
+
+  await db.$transaction(dbOps);
 
   await incrementGoalEvidence(input.goalId || null);
 
