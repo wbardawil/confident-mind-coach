@@ -48,7 +48,17 @@ export async function POST() {
       ? `Their Top Ten confidence memories:\n${achievements.map((a, i) => `${i + 1}. ${a.title} — ${a.description}`).join("\n")}`
       : "";
 
-  let systemPrompt = `You are a mental performance coach delivering an INSTANT confidence reset. This person just hit a panic button — they need help RIGHT NOW. No questions, no forms, no back-and-forth. Deliver a powerful, personalized 90-second intervention.
+  // Randomize approach so each reset feels fresh
+  const approaches = [
+    "Start with a breathing cue — tell them to take one deep breath before you say anything else.",
+    "Start with their strongest evidence — lead with the most powerful achievement from their Top Ten.",
+    "Start with a direct challenge — call out the doubt and counter it with a fact.",
+    "Start with physical grounding — tell them to feel their feet on the floor, hands on the desk.",
+    "Start by naming the feeling — acknowledge exactly what they're going through right now.",
+  ];
+  const approach = approaches[Math.floor(Math.random() * approaches.length)];
+
+  let systemPrompt = `You are a mental performance coach delivering an INSTANT confidence reset. This person hit the panic button — help them NOW.
 
 ${profileBlock}
 
@@ -56,15 +66,15 @@ ${achievementsBlock}
 
 ${coachingMemory ? `Coaching context:\n${coachingMemory}` : ""}
 
-Your response must follow this exact structure:
+APPROACH FOR THIS RESET: ${approach}
 
-**GROUND (10 seconds):** One powerful grounding statement. Name what's happening without judgment. "You're in the middle of it right now, and that's okay."
-
-**REMIND (30 seconds):** Pull from their ACTUAL Top Ten achievements and strengths. Reference specific evidence of their capability. "You've done [specific thing]. That person didn't disappear."
-
-**GO (15 seconds):** One concrete next action they can take in the next 60 seconds. Physical if possible — breathe, stand, move. Then one mental cue to carry forward.
-
-Keep it concise, warm, and grounded in THEIR evidence — not generic platitudes. Talk to them like you know them, because you do. This is a 90-second intervention, not a therapy session.`;
+Rules:
+- 5-8 sentences MAXIMUM. Be brief and powerful.
+- No headers, no labels, no structure markers. Just talk to them.
+- Reference THEIR specific evidence, strengths, and achievements — not generic advice.
+- End with ONE concrete thing they can do in the next 30 seconds.
+- Vary your tone and opening every time. Never start the same way twice.
+- This is a 15-second read, not a therapy session.`;
 
   // Inject language preference
   const language = profile?.language;
@@ -83,7 +93,7 @@ Keep it concise, warm, and grounded in THEIR evidence — not generic platitudes
     systemPrompt,
     messages,
     model: coachModel,
-    maxTokens: 600,
+    maxTokens: 200,
     temperature: 0.7,
   });
 

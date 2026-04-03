@@ -30,19 +30,34 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const navItems = [
-  { href: ROUTES.DASHBOARD, label: "Dashboard", icon: LayoutDashboard },
-  { href: ROUTES.COACH, label: "Coach", icon: MessageCircle },
-  { href: ROUTES.INSTANT_RESET, label: "Instant Reset", icon: Zap },
-  { href: ROUTES.CHALLENGES, label: "Challenges", icon: Flame },
-  { href: ROUTES.GOALS, label: "Goals", icon: Target },
-  { href: ROUTES.DAILY_ESP, label: "Daily ESP", icon: Sun },
-  { href: ROUTES.TOP_TEN, label: "Top Ten", icon: Trophy },
-  { href: ROUTES.PREGAME, label: "Pregame", icon: Crosshair },
-  { href: ROUTES.RESET, label: "Reset", icon: RotateCcw },
-  { href: ROUTES.AAR, label: "After Action Review", icon: ClipboardList },
-  { href: ROUTES.LEDGER, label: "Confidence Ledger", icon: BookOpen },
-  { href: ROUTES.SETTINGS, label: "Settings", icon: Settings },
+const navGroups = [
+  {
+    label: "Daily",
+    items: [
+      { href: ROUTES.DASHBOARD, label: "Dashboard", icon: LayoutDashboard },
+      { href: ROUTES.COACH, label: "Coach", icon: MessageCircle },
+      { href: ROUTES.DAILY_ESP, label: "Daily ESP", icon: Sun },
+      { href: ROUTES.INSTANT_RESET, label: "Instant Reset", icon: Zap },
+    ],
+  },
+  {
+    label: "Performance",
+    items: [
+      { href: ROUTES.PREGAME, label: "Pregame", icon: Crosshair },
+      { href: ROUTES.RESET, label: "Reset", icon: RotateCcw },
+      { href: ROUTES.AAR, label: "After Action Review", icon: ClipboardList },
+      { href: ROUTES.CHALLENGES, label: "Challenges", icon: Flame },
+    ],
+  },
+  {
+    label: "Your Profile",
+    items: [
+      { href: ROUTES.GOALS, label: "Goals", icon: Target },
+      { href: ROUTES.TOP_TEN, label: "Top Ten", icon: Trophy },
+      { href: ROUTES.LEDGER, label: "Confidence Ledger", icon: BookOpen },
+      { href: ROUTES.SETTINGS, label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 export function MobileNav() {
@@ -71,25 +86,34 @@ export function MobileNav() {
               {APP_NAME}
             </SheetTitle>
             <Separator />
-            <nav className="space-y-1 px-3 py-4">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <nav className="px-3 py-4">
+              {navGroups.map((group) => (
+                <div key={group.label} className="mb-4">
+                  <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+                    {group.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.items.map((item) => {
+                      const isActive = pathname === item.href;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                            isActive
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          )}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
           </SheetContent>
         </Sheet>

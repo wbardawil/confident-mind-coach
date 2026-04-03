@@ -90,7 +90,7 @@ export function OnboardingForm() {
     startTransition(async () => {
       const result = await saveOnboarding(data);
       if (result.success) {
-        router.push("/dashboard");
+        router.push("/welcome");
       } else {
         setError(result.error);
       }

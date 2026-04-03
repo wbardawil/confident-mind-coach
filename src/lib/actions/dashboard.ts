@@ -4,11 +4,19 @@ import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
 import { utcDaysAgo } from "@/lib/utils/date";
 
+interface RecommendedAction {
+  label: string;
+  description: string;
+  href: string;
+}
+
 export async function getDashboardData() {
   const user = await getCurrentUser();
   if (!user) return null;
 
   const fourteenDaysAgo = utcDaysAgo(14);
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
 
   const [
     recentSessions,
@@ -16,61 +24,64 @@ export async function getDashboardData() {
     net14dAggregate,
     recentAffirmations,
     recentEspEntries,
+    espToday,
+    activeEnrollment,
   ] = await Promise.all([
-    // Recent coaching sessions (all modes, last 5)
     db.coachingSession.findMany({
       where: { userId: user.id, flagged: false },
       orderBy: { createdAt: "desc" },
       take: 5,
-      select: {
-        id: true,
-        mode: true,
-        createdAt: true,
-      },
+      select: { id: true, mode: true, createdAt: true },
     }),
 
-    // Ledger balance (sum of all scoreDelta)
     db.ledgerEntry.aggregate({
       where: { userId: user.id },
       _sum: { scoreDelta: true },
     }),
 
-    // Net change over last 14 days
     db.ledgerEntry.aggregate({
-      where: {
-        userId: user.id,
-        createdAt: { gte: fourteenDaysAgo },
-      },
+      where: { userId: user.id, createdAt: { gte: fourteenDaysAgo } },
       _sum: { scoreDelta: true },
     }),
 
-    // Recent affirmations (last 3)
     db.affirmation.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: 3,
-      select: {
-        id: true,
-        text: true,
-        source: true,
-        createdAt: true,
-      },
+      select: { id: true, text: true, source: true, createdAt: true },
     }),
 
-    // Recent ESP entries (last 3)
     db.eSPEntry.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: 3,
+      select: { id: true, effort: true, success: true, progress: true, createdAt: true },
+    }),
+
+    // Did the user do ESP today?
+    db.eSPEntry.count({
+      where: { userId: user.id, createdAt: { gte: startOfDay } },
+    }),
+
+    // Active challenge enrollment
+    db.challengeEnrollment.findFirst({
+      where: { userId: user.id, status: "active" },
       select: {
-        id: true,
-        effort: true,
-        success: true,
-        progress: true,
-        createdAt: true,
+        challengeSlug: true,
+        currentDay: true,
+        dayEntries: {
+          where: { completedAt: { gte: startOfDay } },
+          select: { id: true },
+        },
       },
     }),
   ]);
+
+  // Smart recommended action
+  const recommendedAction = getRecommendedAction(
+    espToday > 0,
+    activeEnrollment,
+  );
 
   return {
     userName: user.name ?? user.profile?.role ?? "there",
@@ -80,5 +91,36 @@ export async function getDashboardData() {
     net14d: net14dAggregate._sum.scoreDelta ?? 0,
     recentAffirmations,
     recentEspEntries,
+    recommendedAction,
+  };
+}
+
+function getRecommendedAction(
+  espDoneToday: boolean,
+  activeEnrollment: { challengeSlug: string; currentDay: number; dayEntries: { id: string }[] } | null,
+): RecommendedAction {
+  // 1. Active challenge with pending day today
+  if (activeEnrollment && activeEnrollment.dayEntries.length === 0) {
+    return {
+      label: `Continue Day ${activeEnrollment.currentDay}`,
+      description: "Your challenge is waiting",
+      href: `/challenges/${activeEnrollment.challengeSlug}`,
+    };
+  }
+
+  // 2. No ESP today
+  if (!espDoneToday) {
+    return {
+      label: "Daily ESP",
+      description: "Make your first confidence deposit today",
+      href: "/daily-esp",
+    };
+  }
+
+  // 3. ESP done, challenge done or none — talk to coach
+  return {
+    label: "Talk to your coach",
+    description: "Reflect on today with your coach",
+    href: "/coach",
   };
 }

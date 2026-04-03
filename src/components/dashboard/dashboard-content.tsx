@@ -10,17 +10,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Trophy,
-  Sun,
-  Target,
-  ClipboardList,
   MessageCircle,
+  Sun,
+  Zap,
   TrendingUp,
   TrendingDown,
   Sparkles,
   Activity,
-  RefreshCw,
-  Zap,
+  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 import { ROUTES } from "@/lib/utils/constants";
@@ -36,113 +33,101 @@ export async function DashboardContent() {
   const data = await getDashboardData();
   const name = data?.userName ?? "there";
 
+  // Time-based greeting
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
     <>
-      <div className="mb-8">
+      {/* ── Greeting + Insight ──────────────── */}
+      <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">
-          Welcome back, {name}
+          {greeting}, {name}
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          Your confidence overview at a glance.
-        </p>
+        {data && (
+          <p className="mt-1 text-muted-foreground">
+            Your confidence is at{" "}
+            <span className="font-semibold text-foreground">
+              {data.confidenceScore > 0 ? "+" : ""}
+              {data.confidenceScore}
+            </span>
+            {data.net14d !== 0 && (
+              <>
+                {" "}and{" "}
+                <span
+                  className={
+                    data.net14d >= 0 ? "text-green-600" : "text-red-500"
+                  }
+                >
+                  {data.net14d >= 0 ? "trending up" : "trending down"} (
+                  {data.net14d >= 0 ? "+" : ""}
+                  {data.net14d})
+                </span>{" "}
+                this week
+              </>
+            )}
+          </p>
+        )}
       </div>
 
-      {/* ── Instant Reset (panic button) ───────── */}
-      <Link href={ROUTES.INSTANT_RESET}>
-        <Card className="mb-4 border-red-500/30 bg-red-500/5 transition-colors hover:border-red-500/60">
-          <CardContent className="flex items-center gap-3 py-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
-              <Zap className="h-5 w-5 text-red-500" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Instant Reset</p>
-              <p className="text-xs text-muted-foreground">
-                Need help right now? One tap, zero forms.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </Link>
-
-      {/* ── Quick nav ────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href={ROUTES.COACH}>
-          <Card className="border-primary transition-colors hover:border-primary/80">
-            <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <MessageCircle className="h-5 w-5 text-primary" />
-              <CardTitle className="text-sm font-medium">Coach</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Talk with your confidence coach.
-              </CardDescription>
+      {/* ── Recommended Action (ONE prominent card) ── */}
+      {data?.recommendedAction && (
+        <Link href={data.recommendedAction.href}>
+          <Card className="mb-6 border-primary bg-primary/5 transition-colors hover:bg-primary/10">
+            <CardContent className="flex items-center justify-between py-5">
+              <div>
+                <p className="text-lg font-semibold">
+                  {data.recommendedAction.label}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {data.recommendedAction.description}
+                </p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-primary" />
             </CardContent>
           </Card>
         </Link>
+      )}
 
-        <Link href={ROUTES.DAILY_ESP}>
+      {/* ── Quick Access Row ────────────────── */}
+      <div className="mb-6 flex gap-3">
+        <Link href={ROUTES.COACH} className="flex-1">
           <Card className="transition-colors hover:border-primary">
-            <CardHeader className="flex flex-row items-center gap-3 pb-2">
+            <CardContent className="flex flex-col items-center gap-1 py-4">
+              <MessageCircle className="h-5 w-5 text-muted-foreground" />
+              <span className="text-xs font-medium">Coach</span>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href={ROUTES.DAILY_ESP} className="flex-1">
+          <Card className="transition-colors hover:border-primary">
+            <CardContent className="flex flex-col items-center gap-1 py-4">
               <Sun className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-sm font-medium">Daily ESP</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Reflect on Effort, Success, Progress.
-              </CardDescription>
+              <span className="text-xs font-medium">ESP</span>
             </CardContent>
           </Card>
         </Link>
-
-        <Link href={ROUTES.TOP_TEN}>
-          <Card className="transition-colors hover:border-primary">
-            <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <Trophy className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-sm font-medium">Top Ten</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Review your accomplishments.
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href={ROUTES.PREGAME}>
-          <Card className="transition-colors hover:border-primary">
-            <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <Target className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-sm font-medium">Pregame</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Prepare before an event.
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href={ROUTES.AAR}>
-          <Card className="transition-colors hover:border-primary">
-            <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <ClipboardList className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-sm font-medium">AAR</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                After Action Review.
-              </CardDescription>
+        <Link href={ROUTES.INSTANT_RESET} className="flex-1">
+          <Card className="transition-colors hover:border-red-500/50">
+            <CardContent className="flex flex-col items-center gap-1 py-4">
+              <Zap className="h-5 w-5 text-red-500" />
+              <span className="text-xs font-medium">Reset</span>
             </CardContent>
           </Card>
         </Link>
       </div>
 
       {data && (
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
           {/* ── Confidence Score ───────────────── */}
           <Card>
             <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              {data.net14d >= 0 ? (
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              ) : (
+                <TrendingDown className="h-5 w-5 text-red-500" />
+              )}
               <CardTitle className="text-base">Confidence Ledger</CardTitle>
             </CardHeader>
             <CardContent>
@@ -154,27 +139,6 @@ export async function DashboardContent() {
                   total points
                 </span>
               </div>
-
-              {/* 14-day net change insight */}
-              <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
-                {data.net14d >= 0 ? (
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-500" />
-                )}
-                <span className="text-sm">
-                  <span
-                    className={`font-semibold ${
-                      data.net14d >= 0 ? "text-green-600" : "text-red-500"
-                    }`}
-                  >
-                    {data.net14d >= 0 ? "+" : ""}
-                    {data.net14d}
-                  </span>{" "}
-                  <span className="text-muted-foreground">last 14 days</span>
-                </span>
-              </div>
-
               <Link
                 href={ROUTES.LEDGER}
                 className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
@@ -209,14 +173,6 @@ export async function DashboardContent() {
                             {formatDateShort(session.createdAt, data.timezone)}
                           </span>
                         </div>
-                        {meta && (
-                          <Link
-                            href={meta.href}
-                            className="text-xs text-primary hover:underline"
-                          >
-                            View
-                          </Link>
-                        )}
                       </div>
                     );
                   })}
@@ -225,77 +181,20 @@ export async function DashboardContent() {
             </CardContent>
           </Card>
 
-          {/* ── Recent Affirmations ────────────── */}
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Recent Affirmations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.recentAffirmations.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Complete a Daily ESP to receive your first affirmation.
+          {/* ── Latest Affirmation ─────────────── */}
+          {data.recentAffirmations.length > 0 && (
+            <Card className="border-primary/20 bg-primary/5 lg:col-span-2">
+              <CardHeader className="flex flex-row items-center gap-3 pb-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base">Your Affirmation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm italic leading-relaxed">
+                  &ldquo;{data.recentAffirmations[0].text}&rdquo;
                 </p>
-              ) : (
-                <div className="space-y-3">
-                  {data.recentAffirmations.map((aff) => (
-                    <div key={aff.id}>
-                      <p className="text-sm italic leading-relaxed">
-                        &ldquo;{aff.text}&rdquo;
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {formatDateShort(aff.createdAt, data.timezone)}
-                        {" via "}
-                        {aff.source}
-                      </p>
-                      <Separator className="mt-2" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* ── Recent ESP Entries ─────────────── */}
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <RefreshCw className="h-5 w-5 text-amber-500" />
-              <CardTitle className="text-base">Recent ESP Entries</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.recentEspEntries.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No ESP reflections yet.{" "}
-                  <Link href={ROUTES.DAILY_ESP} className="text-primary hover:underline">
-                    Start one now
-                  </Link>
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {data.recentEspEntries.map((entry) => (
-                    <div key={entry.id}>
-                      <p className="text-sm">
-                        <span className="font-medium">Effort:</span>{" "}
-                        {entry.effort.length > 80
-                          ? entry.effort.slice(0, 80) + "..."
-                          : entry.effort}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {formatDateShort(entry.createdAt, data.timezone)}
-                      </p>
-                      <Separator className="mt-2" />
-                    </div>
-                  ))}
-                </div>
-              )}
-              <Link
-                href={ROUTES.DAILY_ESP}
-                className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
-              >
-                Go to Daily ESP
-              </Link>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </>
