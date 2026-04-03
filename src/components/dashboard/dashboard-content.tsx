@@ -116,6 +116,16 @@ export async function DashboardContent() {
         </Link>
       </div>
 
+      {/* ── Guide link ─────────────────────── */}
+      <div className="mb-6">
+        <Link
+          href={ROUTES.GUIDE}
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+        >
+          New here? Read the guide to get the most out of your coaching.
+        </Link>
+      </div>
+
       {data && (
         <div className="grid gap-6 lg:grid-cols-2">
           {/* ── Confidence Score ───────────────── */}
