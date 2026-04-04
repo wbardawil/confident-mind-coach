@@ -127,6 +127,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                       {entry.completedAt.toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
+                        timeZone: "UTC",
                       })}
                     </CardDescription>
                   </CardHeader>

@@ -1,10 +1,16 @@
 import { getRecentEspSessions } from "@/lib/actions/esp";
+import { getCurrentUser } from "@/lib/utils/user";
 import { EspForm } from "@/components/daily-esp/esp-form";
 import { ExpandableCard } from "@/components/shared/expandable-card";
 import { Separator } from "@/components/ui/separator";
+import { formatDate } from "@/lib/utils/format-date";
 
 export default async function DailyEspPage() {
-  const recentSessions = await getRecentEspSessions(5);
+  const [recentSessions, user] = await Promise.all([
+    getRecentEspSessions(5),
+    getCurrentUser(),
+  ]);
+  const tz = user?.profile?.timezone ?? "UTC";
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -30,7 +36,7 @@ export default async function DailyEspPage() {
               return (
                 <ExpandableCard
                   key={session.id}
-                  date={session.createdAt.toLocaleDateString("en-US", {
+                  date={formatDate(session.createdAt, tz, {
                     weekday: "short",
                     month: "short",
                     day: "numeric",

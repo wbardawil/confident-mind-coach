@@ -1,4 +1,5 @@
 import { getLedgerData } from "@/lib/actions/ledger";
+import { getCurrentUser } from "@/lib/utils/user";
 import { LedgerSummary } from "@/components/ledger/ledger-summary";
 import { LedgerList } from "@/components/ledger/ledger-list";
 import { LedgerTrend } from "@/components/ledger/ledger-trend";
@@ -13,7 +14,11 @@ import Link from "next/link";
 import { ROUTES } from "@/lib/utils/constants";
 
 export default async function LedgerPage() {
-  const data = await getLedgerData();
+  const [data, user] = await Promise.all([
+    getLedgerData(),
+    getCurrentUser(),
+  ]);
+  const tz = user?.profile?.timezone ?? "UTC";
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -71,12 +76,12 @@ export default async function LedgerPage() {
           />
 
           {/* ── 14-day trend ──────────────────── */}
-          <LedgerTrend trend={data.trend} />
+          <LedgerTrend trend={data.trend} timezone={tz} />
 
           {/* ── Entry list ────────────────────── */}
           <div>
             <h2 className="mb-4 text-lg font-semibold">Recent Entries</h2>
-            <LedgerList entries={data.recentEntries} />
+            <LedgerList entries={data.recentEntries} timezone={tz} />
           </div>
         </div>
       )}

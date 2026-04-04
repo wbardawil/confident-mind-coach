@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/utils/user";
 import { systemSchema, type SystemInput } from "@/lib/validators/systems";
 import { proposeSystemsForGoal, type ProposedSystem } from "@/lib/coaching/systems";
 import { ROUTES } from "@/lib/utils/constants";
+import { isUserToday, isUserYesterday } from "@/lib/utils/date";
 
 // ─── Propose systems via AI ──────────────────────
 
@@ -139,24 +140,16 @@ export async function completeSystem(systemId: string) {
     return { success: false as const, error: "Not found" };
   }
 
-  // Calculate streak: if last done was yesterday (or today), increment. Otherwise reset to 1.
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const timezone = user.profile?.timezone ?? "UTC";
 
+  // Calculate streak using user's timezone for day boundaries.
   let newStreak = 1;
   if (system.lastDoneAt) {
-    const lastDate = new Date(
-      system.lastDoneAt.getFullYear(),
-      system.lastDoneAt.getMonth(),
-      system.lastDoneAt.getDate(),
-    );
-    if (lastDate.getTime() === today.getTime()) {
+    if (isUserToday(system.lastDoneAt, timezone)) {
       // Already done today — no change
       return { success: true as const, alreadyDone: true };
     }
-    if (lastDate.getTime() === yesterday.getTime()) {
+    if (isUserYesterday(system.lastDoneAt, timezone)) {
       newStreak = system.streak + 1;
     }
   }
@@ -165,7 +158,7 @@ export async function completeSystem(systemId: string) {
     where: { id: systemId },
     data: {
       streak: newStreak,
-      lastDoneAt: now,
+      lastDoneAt: new Date(),
     },
   });
 

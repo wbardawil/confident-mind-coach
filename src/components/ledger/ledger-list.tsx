@@ -29,9 +29,10 @@ const SOURCE_LABELS: Record<string, string> = {
 
 interface LedgerListProps {
   entries: LedgerEntry[];
+  timezone?: string;
 }
 
-export function LedgerList({ entries }: LedgerListProps) {
+export function LedgerList({ entries, timezone = "UTC" }: LedgerListProps) {
   return (
     <div className="space-y-3">
       {entries.map((entry) => {
@@ -59,6 +60,7 @@ export function LedgerList({ entries }: LedgerListProps) {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
+                      timeZone: timezone,
                     })}
                   </CardDescription>
                 </div>
