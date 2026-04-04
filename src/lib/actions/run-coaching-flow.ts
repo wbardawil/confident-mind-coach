@@ -10,6 +10,7 @@ import { parseAiResponse } from "@/lib/ai/parse";
 import { friendlyAiError } from "@/lib/utils/errors";
 import { getPersonalityContext } from "@/lib/coaching/personality";
 import { getVisionContext } from "@/lib/coaching/vision";
+import { getSystemsContext } from "@/lib/coaching/systems";
 
 // ─── Shared result types ──────────────────────
 
@@ -159,6 +160,12 @@ export async function runCoachingFlow<TInput, TOutput>(
   const visionContext = await getVisionContext(user.id);
   if (visionContext) {
     prompt.systemPrompt += `\n\n${visionContext}`;
+  }
+
+  // Inject active systems context into the system prompt
+  const systemsContext = await getSystemsContext(user.id);
+  if (systemsContext) {
+    prompt.systemPrompt += `\n\n${systemsContext}`;
   }
 
   let rawResponse: string;

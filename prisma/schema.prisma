@@ -129,19 +129,37 @@ model Achievement {
 // ─── CONFIDENCE GOAL (goal-directed confidence) ──
 
 model ConfidenceGoal {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   title           String // "Grow cash flow to $15K/month"
   description     String? // why this goal matters
   category        String // career | financial | personal | health | relationship | other
   targetDate      DateTime? // optional deadline
-  efficacyScore   Int      @default(5) // 1-10: "How confident am I that I can achieve this?"
-  status          String   @default("active") // active | achieved | paused
-  evidenceCount   Int      @default(0) // cached count of linked ledger deposits
+  efficacyScore   Int          @default(5) // 1-10: "How confident am I that I can achieve this?"
+  status          String       @default("active") // active | achieved | paused
+  evidenceCount   Int          @default(0) // cached count of linked ledger deposits
   visionDomainId  String?  // optional link to VisionDomain
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  systems         GoalSystem[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+// ─── GOAL SYSTEM (AI-proposed daily/weekly actions) ──
+
+model GoalSystem {
+  id          String         @id @default(cuid())
+  goalId      String
+  goal        ConfidenceGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String // "Cold-call 3 prospects every morning"
+  description String? // why this system works for this person
+  frequency   String // daily | weekly | per-event
+  status      String         @default("active") // active | paused | completed
+  source      String         @default("ai") // ai | user — who created it
+  streak      Int            @default(0) // consecutive completions
+  lastDoneAt  DateTime? // last time user marked this done
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 // ─── AFFIRMATION ───────────────────────────────

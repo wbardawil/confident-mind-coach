@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfidenceScore } from "@/components/shared/confidence-score";
 import { GoalForm } from "@/components/goals/goal-form";
+import { GoalSystems } from "@/components/goals/goal-systems";
 import {
   updateEfficacyScore,
   updateGoalStatus,
@@ -27,6 +28,17 @@ import {
   Trash2,
 } from "lucide-react";
 
+interface SystemData {
+  id: string;
+  title: string;
+  description: string | null;
+  frequency: string;
+  status: string;
+  source: string;
+  streak: number;
+  lastDoneAt: Date | null;
+}
+
 interface GoalCardProps {
   goal: {
     id: string;
@@ -38,6 +50,7 @@ interface GoalCardProps {
     status: string;
     evidenceCount: number;
     createdAt: Date;
+    systems?: SystemData[];
   };
 }
 
@@ -131,6 +144,15 @@ export function GoalCard({ goal }: GoalCardProps) {
           )}
           <span>{goal.evidenceCount} evidence deposits</span>
         </div>
+
+        {/* Systems */}
+        {goal.systems && (
+          <GoalSystems
+            goalId={goal.id}
+            systems={goal.systems}
+            isActive={isActive}
+          />
+        )}
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-1">

@@ -3,6 +3,7 @@ import { db } from "@/lib/utils/db";
 import { getGoalContext } from "@/lib/actions/goals";
 import { getPersonalityContext } from "@/lib/coaching/personality";
 import { getVisionContext } from "@/lib/coaching/vision";
+import { getSystemsContext } from "@/lib/coaching/systems";
 
 /**
  * Memory depth by subscription tier.
@@ -38,6 +39,7 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
     journalSyntheses,
     personalityContext,
     visionContext,
+    systemsContext,
   ] = await Promise.all([
     // ESP entries (depth by tier)
     db.eSPEntry.findMany({
@@ -135,6 +137,9 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
 
     // 10x vision context
     getVisionContext(userId),
+
+    // Active systems (daily/weekly actions)
+    getSystemsContext(userId),
   ]);
 
   const sections: string[] = [];
@@ -147,6 +152,11 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
   // ── 10x Vision (North Star context) ──
   if (visionContext) {
     sections.push(visionContext);
+  }
+
+  // ── Active systems (daily/weekly actions) ──
+  if (systemsContext) {
+    sections.push(systemsContext);
   }
 
   // ── Past chat sessions (summarized for relevance) ──
