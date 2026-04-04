@@ -167,6 +167,10 @@ vi.mock("@/lib/coaching/personality", () => ({
   getPersonalityContext: vi.fn().mockResolvedValue(""),
 }));
 
+vi.mock("@/lib/coaching/vision", () => ({
+  getVisionContext: vi.fn().mockResolvedValue(""),
+}));
+
 // ─── Import after mocks ────────────────────────
 import { submitReset } from "@/lib/actions/reset";
 

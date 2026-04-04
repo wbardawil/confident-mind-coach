@@ -37,6 +37,7 @@ model User {
   enrollments      ChallengeEnrollment[]
   journalEntries           CoachingJournal[]
   personalityAssessments   PersonalityAssessment[]
+  visionDomains            VisionDomain[]
 }
 
 // ─── USER DOCUMENT (uploaded context files) ────
@@ -92,6 +93,24 @@ model PersonalityAssessment {
   updatedAt    DateTime @updatedAt
 }
 
+// ─── VISION DOMAIN (10x life vision) ─────────────
+
+model VisionDomain {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain       String   // career | financial | personal | health | relationship | other
+  vision       String   // the 10x vision description
+  currentState String?  // where they are now
+  gap          String?  // AI-generated gap analysis
+  priority     Int      @default(0) // ordering — first domain added = highest priority
+  status       String   @default("active") // active | paused
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, domain])
+}
+
 // ─── ACHIEVEMENT (Top Ten confidence memories) ──
 
 model Achievement {
@@ -120,6 +139,7 @@ model ConfidenceGoal {
   efficacyScore   Int      @default(5) // 1-10: "How confident am I that I can achieve this?"
   status          String   @default("active") // active | achieved | paused
   evidenceCount   Int      @default(0) // cached count of linked ledger deposits
+  visionDomainId  String?  // optional link to VisionDomain
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

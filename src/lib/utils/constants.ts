@@ -14,6 +14,7 @@ export const ROUTES = {
   COACH: "/coach",
   INSTANT_RESET: "/instant-reset",
   CHALLENGES: "/challenges",
+  VISION: "/vision",
   GOALS: "/goals",
   LEDGER: "/ledger",
   GUIDE: "/guide",
