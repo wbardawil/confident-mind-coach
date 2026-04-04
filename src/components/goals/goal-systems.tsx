@@ -22,7 +22,12 @@ import {
   deleteSystem,
 } from "@/lib/actions/systems";
 import { SYSTEM_FREQUENCY_LABELS, type SystemFrequency } from "@/lib/validators/systems";
-import { type ProposedSystem } from "@/lib/coaching/systems";
+
+interface ProposedSystem {
+  title: string;
+  description: string;
+  frequency: "daily" | "weekly" | "per-event";
+}
 import { Input } from "@/components/ui/input";
 
 interface SystemData {
