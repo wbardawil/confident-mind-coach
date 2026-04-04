@@ -39,6 +39,7 @@ export const goalSchema = z.object({
     .int()
     .min(CONFIDENCE_MIN, `Minimum is ${CONFIDENCE_MIN}`)
     .max(CONFIDENCE_MAX, `Maximum is ${CONFIDENCE_MAX}`),
+  visionDomainId: z.string().optional(),
 });
 
 export type GoalInput = z.infer<typeof goalSchema>;

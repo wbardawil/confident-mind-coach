@@ -50,6 +50,7 @@ export async function createGoal(data: GoalInput) {
       category: parsed.data.category,
       targetDate: parsed.data.targetDate ? new Date(parsed.data.targetDate) : null,
       efficacyScore: parsed.data.efficacyScore,
+      visionDomainId: parsed.data.visionDomainId || null,
     },
   });
 
@@ -77,6 +78,7 @@ export async function updateGoal(id: string, data: GoalInput) {
       category: parsed.data.category,
       targetDate: parsed.data.targetDate ? new Date(parsed.data.targetDate) : null,
       efficacyScore: parsed.data.efficacyScore,
+      visionDomainId: parsed.data.visionDomainId || null,
     },
   });
 
