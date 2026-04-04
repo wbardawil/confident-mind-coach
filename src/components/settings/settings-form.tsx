@@ -129,6 +129,16 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 })}
               </p>
             </div>
+
+            <div className="space-y-2">
+              <Label>Timezone</Label>
+              <p className="text-sm text-muted-foreground">
+                {settings.timezone}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Auto-detected from your browser. Dates and streaks use this timezone.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
