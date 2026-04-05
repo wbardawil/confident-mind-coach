@@ -1,4 +1,5 @@
 import { ChatContainer } from "@/components/coach/chat-container";
+import { ChatHistory } from "@/components/coach/chat-history";
 import { Badge } from "@/components/ui/badge";
 import { getCurrentUser } from "@/lib/utils/user";
 import { db } from "@/lib/utils/db";
@@ -11,11 +12,12 @@ const MODEL_LABELS: Record<string, string> = {
 };
 
 interface CoachPageProps {
-  searchParams: { new?: string };
+  searchParams: { new?: string; session?: string };
 }
 
 export default async function CoachPage({ searchParams }: CoachPageProps) {
   const startFresh = searchParams.new === "true";
+  const requestedSessionId = searchParams.session;
 
   let initialMessages: Array<{
     id: string;
@@ -31,22 +33,33 @@ export default async function CoachPage({ searchParams }: CoachPageProps) {
       coachModel = user.profile?.coachModel ?? "haiku-4.5";
 
       if (!startFresh) {
-        // Load the most recent chat session
-        const lastSession = await db.chatSession.findFirst({
-          where: { userId: user.id },
-          orderBy: { updatedAt: "desc" },
-          include: {
-            messages: {
-              orderBy: { createdAt: "asc" },
-              take: 50,
-              select: { id: true, role: true, content: true },
-            },
-          },
-        });
+        // Load a specific session or the most recent one
+        const session = requestedSessionId
+          ? await db.chatSession.findFirst({
+              where: { id: requestedSessionId, userId: user.id },
+              include: {
+                messages: {
+                  orderBy: { createdAt: "asc" },
+                  take: 50,
+                  select: { id: true, role: true, content: true },
+                },
+              },
+            })
+          : await db.chatSession.findFirst({
+              where: { userId: user.id },
+              orderBy: { updatedAt: "desc" },
+              include: {
+                messages: {
+                  orderBy: { createdAt: "asc" },
+                  take: 50,
+                  select: { id: true, role: true, content: true },
+                },
+              },
+            });
 
-        if (lastSession && lastSession.messages.length > 0) {
-          initialSessionId = lastSession.id;
-          initialMessages = lastSession.messages.map((m) => ({
+        if (session && session.messages.length > 0) {
+          initialSessionId = session.id;
+          initialMessages = session.messages.map((m) => ({
             id: m.id,
             role: m.role as "user" | "assistant",
             content: m.content,
@@ -72,14 +85,17 @@ export default async function CoachPage({ searchParams }: CoachPageProps) {
             Talk through what&apos;s on your mind with your confidence coach.
           </p>
         </div>
-        {initialSessionId && (
-          <a
-            href="/coach?new=true"
-            className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            New Chat
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          <ChatHistory currentSessionId={initialSessionId} />
+          {initialSessionId && (
+            <a
+              href="/coach?new=true"
+              className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              New Chat
+            </a>
+          )}
+        </div>
       </div>
       <ChatContainer
         initialMessages={initialMessages}
