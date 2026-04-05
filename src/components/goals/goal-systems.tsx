@@ -54,6 +54,7 @@ export function GoalSystems({
   const [isPending, startTransition] = useTransition();
   const [proposals, setProposals] = useState<ProposedSystem[] | null>(null);
   const [proposing, setProposing] = useState(false);
+  const [proposeError, setProposeError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [actionId, setActionId] = useState<string | null>(null);
@@ -64,11 +65,14 @@ export function GoalSystems({
   function handlePropose() {
     setProposing(true);
     setProposals(null);
+    setProposeError(null);
     startTransition(async () => {
       const result = await proposeSystems(goalId);
       setProposing(false);
       if (result.success) {
         setProposals(result.systems);
+      } else {
+        setProposeError(result.error ?? "Failed to generate systems. Please try again.");
       }
     });
   }
@@ -184,6 +188,11 @@ export function GoalSystems({
             Add
           </Button>
         </div>
+      )}
+
+      {/* AI error */}
+      {proposeError && (
+        <p className="text-xs text-destructive">{proposeError}</p>
       )}
 
       {/* AI proposals */}
