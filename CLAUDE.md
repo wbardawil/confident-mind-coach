@@ -220,3 +220,23 @@ The app is deployed to Vercel at https://confident-mind-coach.vercel.app.
 
 Auth note: Clerk is running in development mode. Each user gets their own account
 and data. A custom domain + Clerk production instance is needed for production-grade auth.
+
+## Production Launch Checklist
+
+### Launch blockers (code changes):
+1. Error boundaries — `not-found.tsx`, `error.tsx` (global + app-level)
+2. Stripe env var validation in `check-env.ts`
+3. Switch `bypass = true` to env-controlled `BYPASS_SUBSCRIPTION_GATE`
+4. Switch from `prisma db push` to `prisma migrate deploy` in build
+
+### Launch blockers (manual setup):
+5. Clerk production mode — custom domain + production API keys
+6. Stripe price IDs — create in Stripe Dashboard, set in Vercel env vars
+
+### Post-launch hardening:
+7. Sentry error tracking (`@sentry/nextjs`)
+8. Rate limiting middleware (Upstash Redis) on `/api/coach`, `/api/instant-reset`
+9. Analytics (PostHog)
+10. SEO basics (robots.ts, sitemap.ts, OpenGraph)
+11. E2E tests (Playwright)
+12. Loading states (`loading.tsx` on key routes)
