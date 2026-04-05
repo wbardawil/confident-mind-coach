@@ -99,7 +99,8 @@ model VisionDomain {
   id           String   @id @default(cuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  domain       String   // career | financial | personal | health | relationship | other
+  domain       String   // career | financial | personal | health | relationship | custom
+  customLabel  String?  // user-defined label when domain = "custom"
   vision       String   // the 10x vision description
   currentState String?  // where they are now
   gap          String?  // AI-generated gap analysis
@@ -108,7 +109,7 @@ model VisionDomain {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  @@unique([userId, domain])
+  @@unique([userId, domain, customLabel])
 }
 
 // ─── ACHIEVEMENT (Top Ten confidence memories) ──

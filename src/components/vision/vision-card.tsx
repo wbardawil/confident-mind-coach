@@ -8,14 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pencil, Trash2, Sparkles } from "lucide-react";
 import { deleteVision } from "@/lib/actions/vision";
 import { VisionForm } from "@/components/vision/vision-form";
-import {
-  VISION_DOMAIN_LABELS,
-  type VisionDomainType,
-} from "@/lib/validators/vision";
+import { getVisionDomainLabel } from "@/lib/validators/vision";
 
 interface VisionDomainData {
   id: string;
   domain: string;
+  customLabel: string | null;
   vision: string;
   currentState: string | null;
   gap: string | null;
@@ -28,7 +26,7 @@ export function VisionCard({ vision }: { vision: VisionDomainData }) {
   const [isPending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
 
-  const label = VISION_DOMAIN_LABELS[vision.domain as VisionDomainType] ?? vision.domain;
+  const label = getVisionDomainLabel(vision.domain, vision.customLabel);
   const isPrimary = vision.priority === 0;
 
   function handleDelete() {
