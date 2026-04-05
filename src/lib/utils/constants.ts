@@ -18,6 +18,7 @@ export const ROUTES = {
   GOALS: "/goals",
   LEDGER: "/ledger",
   GUIDE: "/guide",
+  MEMORY: "/memory",
   SETTINGS: "/settings",
 } as const;
 

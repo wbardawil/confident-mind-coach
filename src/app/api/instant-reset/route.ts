@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 import { streamCoaching, resolveCoachModel } from "@/lib/ai/client";
+import { logUsage } from "@/lib/ai/usage-logger";
 import { getCoachingMemory } from "@/lib/coaching/memory";
 import { getEffectiveModel } from "@/lib/stripe/gate";
 import { db } from "@/lib/utils/db";
@@ -93,6 +94,7 @@ CONTENT RULES:
     },
   ];
 
+  const resetStartTime = Date.now();
   const stream = streamCoaching({
     systemPrompt,
     messages,
@@ -116,6 +118,24 @@ CONTENT RULES:
               encoder.encode(`data: ${JSON.stringify({ text })}\n\n`),
             );
           }
+        }
+
+        // Log usage
+        try {
+          const finalMessage = await stream.finalMessage();
+          const usage = finalMessage.usage;
+          logUsage({
+            userId: user.id,
+            feature: "instant-reset",
+            model: finalMessage.model,
+            inputTokens: usage.input_tokens ?? 0,
+            outputTokens: usage.output_tokens ?? 0,
+            cacheReadTokens: (usage as unknown as Record<string, number>).cache_read_input_tokens ?? 0,
+            cacheWriteTokens: (usage as unknown as Record<string, number>).cache_creation_input_tokens ?? 0,
+            latencyMs: Date.now() - resetStartTime,
+          });
+        } catch {
+          // Usage logging should never block the response
         }
 
         // Log as a ledger deposit — showing up and resetting is always positive

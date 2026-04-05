@@ -56,14 +56,14 @@ export async function generateSessionSummary(sessionId: string): Promise<void> {
       .map((m) => `${m.role === "user" ? "Client" : "Coach"}: ${m.content}`)
       .join("\n\n");
 
-    const raw = await generateCoaching({
+    const aiResult = await generateCoaching({
       systemPrompt: SUMMARY_PROMPT,
       userMessage: transcript,
       maxTokens: 800,
       temperature: 0.2, // low temp for factual accuracy
     });
 
-    const summary = raw.trim();
+    const summary = aiResult.text.trim();
     if (summary.length > 50) {
       await db.chatSession.update({
         where: { id: sessionId },

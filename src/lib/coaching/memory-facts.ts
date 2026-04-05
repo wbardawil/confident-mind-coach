@@ -115,12 +115,13 @@ export async function extractSessionFacts(
     if (userMessages.length < 50) return; // too little content
 
     // Extract facts via Haiku
-    const raw = await generateCoaching({
+    const aiResult = await generateCoaching({
       systemPrompt: EXTRACTION_PROMPT,
       userMessage: userMessages,
       maxTokens: 600,
       temperature: 0.1, // very low for factual accuracy
     });
+    const raw = aiResult.text;
 
     let result: ExtractionResult;
     try {
@@ -201,14 +202,14 @@ async function detectConflicts(
       .map((f) => `[${f.id}] ${f.subject} / ${f.predicate}: ${f.content}`)
       .join("\n");
 
-    const raw = await generateCoaching({
+    const aiResult = await generateCoaching({
       systemPrompt: CONFLICT_PROMPT,
       userMessage: `NEW FACT: ${newFact.subject} / ${newFact.predicate}: ${newFact.content}\n\nEXISTING FACTS:\n${existingList}`,
       maxTokens: 200,
       temperature: 0.1,
     });
 
-    const result = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? "{}");
+    const result = JSON.parse(aiResult.text.match(/\{[\s\S]*\}/)?.[0] ?? "{}");
     const supersedes = result.supersedes;
 
     if (!Array.isArray(supersedes)) return [];

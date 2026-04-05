@@ -65,7 +65,10 @@ const { mockAiData } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/ai/client", () => ({
-  generateCoaching: vi.fn().mockResolvedValue(JSON.stringify(mockAiData)),
+  generateCoaching: vi.fn().mockResolvedValue({
+    text: JSON.stringify(mockAiData),
+    usage: { model: "claude-haiku-4-5-20251001", inputTokens: 100, outputTokens: 50, cacheReadTokens: 0, cacheWriteTokens: 0 },
+  }),
 }));
 
 vi.mock("@/lib/ai/parse", () => ({
@@ -83,6 +86,10 @@ vi.mock("@prisma/client", () => ({
   Prisma: {
     JsonNull: "DbNull",
   },
+}));
+
+vi.mock("@/lib/ai/usage-logger", () => ({
+  logUsage: vi.fn(),
 }));
 
 vi.mock("@/lib/coaching/personality", () => ({

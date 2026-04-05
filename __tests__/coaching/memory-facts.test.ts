@@ -15,7 +15,7 @@ vi.mock("@/lib/utils/db", () => ({
 }));
 
 vi.mock("@/lib/ai/client", () => ({
-  generateCoaching: vi.fn().mockResolvedValue("{}"),
+  generateCoaching: vi.fn().mockResolvedValue({ text: "{}", usage: { model: "test", inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 } }),
 }));
 
 import { db } from "@/lib/utils/db";
@@ -48,7 +48,7 @@ describe("memory-facts", () => {
         { role: "user", content: "It shaped who I am today", id: "5", sessionId: "s1", flagged: false, flaggedReason: null, createdAt: new Date() },
       ]);
 
-      vi.mocked(generateCoaching).mockResolvedValue(JSON.stringify({
+      vi.mocked(generateCoaching).mockResolvedValue({ text: JSON.stringify({
         facts: [
           {
             category: "person",
@@ -69,7 +69,7 @@ describe("memory-facts", () => {
             content: "User's father taught them to never quit, shaping who they are",
           },
         ],
-      }));
+      }), usage: { model: "test", inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 } });
 
       vi.mocked(db.memoryFact.findMany).mockResolvedValue([]);
 
@@ -101,7 +101,7 @@ describe("memory-facts", () => {
         { role: "assistant", content: "Interesting", id: "4", sessionId: "s1", flagged: false, flaggedReason: null, createdAt: new Date() },
       ]);
 
-      vi.mocked(generateCoaching).mockResolvedValue(JSON.stringify({
+      vi.mocked(generateCoaching).mockResolvedValue({ text: JSON.stringify({
         facts: [
           {
             category: "person",
@@ -110,7 +110,7 @@ describe("memory-facts", () => {
             content: "User's father is named Roberto",
           },
         ],
-      }));
+      }), usage: { model: "test", inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 } });
 
       // Existing fact with same subject+predicate+content
       vi.mocked(db.memoryFact.findMany).mockResolvedValue([
@@ -145,7 +145,7 @@ describe("memory-facts", () => {
         { role: "assistant", content: "Go on", id: "4", sessionId: "s1", flagged: false, flaggedReason: null, createdAt: new Date() },
       ]);
 
-      vi.mocked(generateCoaching).mockResolvedValue("This is not JSON at all");
+      vi.mocked(generateCoaching).mockResolvedValue({ text: "This is not JSON at all", usage: { model: "test", inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 } });
       vi.mocked(db.memoryFact.findMany).mockResolvedValue([]);
 
       // Should not throw

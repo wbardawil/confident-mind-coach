@@ -89,7 +89,8 @@ ${contextBlock ? `\n## Context about this person\n\n${contextBlock}` : ""}`,
 
   let rawResponse: string;
   try {
-    rawResponse = await generateCoaching(prompt);
+    const result = await generateCoaching(prompt);
+    rawResponse = result.text;
   } catch (e) {
     return {
       success: false,

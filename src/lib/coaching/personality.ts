@@ -85,7 +85,8 @@ export async function extractPersonalityFromDocument(
 
   let rawResponse: string;
   try {
-    rawResponse = await generateCoaching(prompt);
+    const result = await generateCoaching(prompt);
+    rawResponse = result.text;
   } catch (e) {
     return {
       success: false,
