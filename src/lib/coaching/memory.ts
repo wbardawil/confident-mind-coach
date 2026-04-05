@@ -9,18 +9,7 @@ import { getSystemsContext } from "@/lib/coaching/systems";
  * Memory depth by subscription tier.
  * Higher tiers get deeper history = smarter coach.
  */
-/**
- * Memory depth by subscription tier.
- * With summaries (~300 words each), even 30 sessions is only ~9,000 tokens.
- * Previously raw transcripts made even 3 sessions cost ~9,000 tokens.
- */
-const MEMORY_DEPTH = {
-  free: { sessions: 5, esp: 5, aar: 3, journal: 5 },
-  pro: { sessions: 20, esp: 20, aar: 10, journal: 30 },
-  elite: { sessions: 40, esp: 50, aar: 20, journal: 100 },
-} as const;
-
-type MemoryTier = keyof typeof MEMORY_DEPTH;
+import { MEMORY_DEPTH_BY_TIER, type PlanTier } from "@/lib/stripe/config";
 
 /**
  * Build a coaching memory snapshot for the AI coach.
@@ -29,7 +18,7 @@ type MemoryTier = keyof typeof MEMORY_DEPTH;
  * into a rich context block. Depth scales with subscription tier.
  */
 export async function getCoachingMemory(userId: string, tier?: string): Promise<string> {
-  const depth = MEMORY_DEPTH[(tier as MemoryTier) ?? "free"] ?? MEMORY_DEPTH.free;
+  const depth = MEMORY_DEPTH_BY_TIER[(tier as PlanTier) ?? "free"] ?? MEMORY_DEPTH_BY_TIER.free;
 
   const [
     recentEsp,

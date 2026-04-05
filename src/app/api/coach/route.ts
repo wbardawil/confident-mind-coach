@@ -7,7 +7,8 @@ import { writeJournalEntry } from "@/lib/coaching/journal";
 import { refreshSessionSummary } from "@/lib/coaching/session-summary";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
 import { getCoachingMemory } from "@/lib/coaching/memory";
-import { getEffectiveModel } from "@/lib/stripe/gate";
+import { getEffectiveModel, checkChatLimit } from "@/lib/stripe/gate";
+import { hasChatAccess } from "@/lib/stripe/config";
 import { scanForCrisis } from "@/lib/safety/crisis-detect";
 import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { db } from "@/lib/utils/db";
@@ -21,13 +22,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 1b. Tier check — conversational coach requires Pro+
+  // 1b. Tier check — conversational coach requires Coach plan or higher
   const bypass = true; // TODO: revert when Stripe is live
   const tier = bypass ? "elite" : (user.subscriptionTier ?? "free");
-  if (tier === "free") {
+  if (!hasChatAccess(tier)) {
     return NextResponse.json(
-      { error: "Upgrade to Pro to access the conversational coach." },
+      { error: "Upgrade to the Coach plan to access the conversational coach." },
       { status: 403 },
+    );
+  }
+
+  // 1c. Monthly message cap
+  const chatLimit = await checkChatLimit(user.id, tier);
+  if (!chatLimit.allowed) {
+    return NextResponse.json(
+      {
+        error: `You've used all ${chatLimit.cap} chat messages this month. Your structured tools (ESP, Pregame, Reset, AAR) are always available.`,
+        limitReached: true,
+        used: chatLimit.used,
+        cap: chatLimit.cap,
+      },
+      { status: 429 },
     );
   }
 
