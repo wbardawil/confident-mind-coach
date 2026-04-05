@@ -25,6 +25,7 @@ export async function GET() {
     aarEntries,
     ledgerEntries,
     chatSessions,
+    memoryFacts,
     affirmations,
     documents,
   ] = await Promise.all([
@@ -62,6 +63,10 @@ export async function GET() {
         },
       },
     }),
+    db.memoryFact.findMany({
+      where: { userId: user.id },
+      orderBy: { learnedAt: "desc" },
+    }),
     db.affirmation.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
@@ -93,6 +98,7 @@ export async function GET() {
       updatedAt: s.updatedAt,
       messages: s.messages,
     })),
+    memoryFacts,
     affirmations,
     documents,
   };

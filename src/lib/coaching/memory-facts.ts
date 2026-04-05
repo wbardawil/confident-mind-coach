@@ -232,12 +232,12 @@ async function detectConflicts(
 export async function getActiveFacts(
   userId: string,
   maxFacts: number = 100,
-): Promise<Array<{ category: string; subject: string; content: string }>> {
+): Promise<Array<{ category: string; subject: string; content: string; confidence: number }>> {
   const facts = await db.memoryFact.findMany({
     where: { userId, active: true },
     orderBy: { learnedAt: "desc" },
     take: maxFacts,
-    select: { category: true, subject: true, content: true },
+    select: { category: true, subject: true, content: true, confidence: true },
   });
 
   return facts;

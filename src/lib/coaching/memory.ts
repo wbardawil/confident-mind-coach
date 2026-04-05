@@ -154,7 +154,8 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
     for (const fact of memoryFacts) {
       const key = fact.subject;
       const arr = bySubject.get(key) ?? [];
-      arr.push(`- [${fact.category}] ${fact.content}`);
+      const confidenceTag = fact.confidence < 0.8 ? " [UNCERTAIN — verify with user before stating]" : "";
+      arr.push(`- [${fact.category}] ${fact.content}${confidenceTag}`);
       bySubject.set(key, arr);
     }
 
@@ -163,7 +164,7 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
       .join("\n\n");
 
     sections.push(
-      `## Known facts about this person\n\nThese are verified facts from your conversations. They are EXACT — do not paraphrase, embellish, or confuse any detail. If a fact says "father", say "father". If it says "Sarah", say "Sarah".\n\n${factBlocks}`,
+      `## Known facts about this person\n\nThese are verified facts from your conversations. They are EXACT — do not paraphrase, embellish, or confuse any detail. If a fact says "father", say "father". If it says "Sarah", say "Sarah". Facts marked UNCERTAIN have been flagged for possible inaccuracy — ask the user to confirm before referencing them.\n\n${factBlocks}`,
     );
   }
 

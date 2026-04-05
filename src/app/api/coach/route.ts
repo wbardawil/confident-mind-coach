@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 
 import { streamCoaching, resolveCoachModel, getModelLabel } from "@/lib/ai/client";
 import { logUsage } from "@/lib/ai/usage-logger";
+import { scoreResponse } from "@/lib/monitoring/promise-monitor";
 import { writeJournalEntry } from "@/lib/coaching/journal";
 import { refreshSessionSummary } from "@/lib/coaching/session-summary";
 import { extractSessionFacts } from "@/lib/coaching/memory-facts";
@@ -199,6 +200,19 @@ export async function POST(req: NextRequest) {
             content: fullResponse,
           },
         });
+
+        // Fire-and-forget: quality check on the response
+        scoreResponse(fullResponse, user.id).then((score) => {
+          if (score.boundaryViolation) {
+            console.warn(JSON.stringify({
+              level: "warn",
+              event: "boundary_violation",
+              userId: user.id,
+              sessionId: session!.id,
+              score: score.score,
+            }));
+          }
+        }).catch(() => {});
 
         // Fire-and-forget: extract facts + refresh summary for future memory
         extractSessionFacts(session!.id, user.id).catch(() => {});
