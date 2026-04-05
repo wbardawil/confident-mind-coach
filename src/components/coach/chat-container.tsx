@@ -38,6 +38,15 @@ export function ChatContainer({
   const [activeModel, setActiveModel] = useState(initialModelLabel);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Reset state when props change (e.g. navigating to new chat or loading a session)
+  useEffect(() => {
+    setMessages(initialMessages);
+    setSessionId(initialSessionId);
+    setError(null);
+    setEscalation(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on sessionId only
+  }, [initialSessionId]);
+
   // Auto-scroll to bottom
   useEffect(() => {
     const el = scrollRef.current;

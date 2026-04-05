@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock the db and AI modules before importing
 vi.mock("@/lib/utils/db", () => ({
