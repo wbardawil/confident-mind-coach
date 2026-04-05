@@ -17,6 +17,7 @@ interface TrendPoint {
 
 interface LedgerTrendProps {
   trend: TrendPoint[];
+  timezone?: string;
 }
 
 /** Height of the chart area in pixels. */
@@ -26,7 +27,7 @@ const MIN_BAR_PX = 4;
 /** Daily overlay is at most 40% of the cumulative bar. */
 const MAX_DAILY_RATIO = 0.4;
 
-export function LedgerTrend({ trend }: LedgerTrendProps) {
+export function LedgerTrend({ trend, timezone = "UTC" }: LedgerTrendProps) {
   if (trend.length === 0) return null;
 
   const values = trend.map((t) => t.cumulative);
@@ -36,10 +37,10 @@ export function LedgerTrend({ trend }: LedgerTrendProps) {
 
   const maxDaily = Math.max(...trend.map((t) => Math.abs(t.daily)), 1);
 
-  // Format date label: "Mar 5"
+  // Format date label: "Mar 5" in user's timezone
   function formatDay(iso: string) {
-    const d = new Date(iso + "T00:00:00");
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const d = new Date(iso + "T12:00:00Z"); // noon UTC avoids day-shift
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: timezone });
   }
 
   return (

@@ -11,12 +11,20 @@ import {
   type VisionDomainType,
 } from "@/lib/validators/vision";
 
+/** Preset (non-custom) domains */
+const PRESET_DOMAINS = VISION_DOMAINS.filter((d) => d !== "custom");
+
 export default async function VisionPage() {
   const visions = await getVisions();
   const activeVisions = visions.filter((v) => v.status === "active");
-  const takenDomains = visions.map((v) => v.domain);
-  const unexploredDomains = VISION_DOMAINS.filter(
-    (d) => !takenDomains.includes(d),
+
+  // Only preset domains count as "taken" — users can create unlimited custom domains
+  const takenPresetDomains = visions
+    .filter((v) => v.domain !== "custom")
+    .map((v) => v.domain);
+
+  const unexploredDomains = PRESET_DOMAINS.filter(
+    (d) => !takenPresetDomains.includes(d),
   );
 
   return (
@@ -28,17 +36,15 @@ export default async function VisionPage() {
             Define what 10x looks like — then build toward it.
           </p>
         </div>
-        {unexploredDomains.length > 0 && (
-          <VisionForm
-            trigger={
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Domain
-              </Button>
-            }
-            takenDomains={takenDomains}
-          />
-        )}
+        <VisionForm
+          trigger={
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Domain
+            </Button>
+          }
+          takenDomains={takenPresetDomains}
+        />
       </div>
 
       {visions.length === 0 ? (
@@ -60,7 +66,7 @@ export default async function VisionPage() {
                 Define Your First Vision
               </Button>
             }
-            takenDomains={takenDomains}
+            takenDomains={takenPresetDomains}
           />
         </div>
       ) : (
@@ -72,7 +78,7 @@ export default async function VisionPage() {
             ))}
           </div>
 
-          {/* Unexplored domains */}
+          {/* Unexplored preset domains */}
           {unexploredDomains.length > 0 && (
             <>
               <Separator />
@@ -93,7 +99,7 @@ export default async function VisionPage() {
                           {VISION_DOMAIN_LABELS[d as VisionDomainType]}
                         </Badge>
                       }
-                      takenDomains={takenDomains}
+                      takenDomains={takenPresetDomains}
                     />
                   ))}
                 </div>

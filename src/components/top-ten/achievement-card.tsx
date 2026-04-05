@@ -86,7 +86,7 @@ export function AchievementCard({
         </div>
         {achievement.occurredAt && (
           <CardDescription>
-            {achievement.occurredAt.toLocaleDateString()}
+            {achievement.occurredAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
           </CardDescription>
         )}
       </CardHeader>

@@ -3,7 +3,7 @@
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
 import { LEDGER_TYPES } from "@/lib/utils/constants";
-import { utcDaysAgo, toUTCDateKey } from "@/lib/utils/date";
+import { utcDaysAgo, toUserDateKey, userDaysAgo } from "@/lib/utils/date";
 
 export interface LedgerSummary {
   totalScore: number;
@@ -85,10 +85,11 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
       }),
     ]);
 
-  // Build daily trend: group by UTC date, compute running cumulative
+  // Build daily trend: group by user's timezone date
+  const timezone = user.profile?.timezone ?? "UTC";
   const dailyMap = new Map<string, number>();
   for (const entry of trendEntries) {
-    const day = toUTCDateKey(entry.createdAt);
+    const day = toUserDateKey(entry.createdAt, timezone);
     dailyMap.set(day, (dailyMap.get(day) ?? 0) + (entry.scoreDelta ?? 0));
   }
 
@@ -106,7 +107,7 @@ export async function getLedgerData(): Promise<LedgerSummary | null> {
   let running = preWindowAggregate._sum.scoreDelta ?? 0;
 
   for (let i = 13; i >= 0; i--) {
-    const key = toUTCDateKey(utcDaysAgo(i));
+    const key = toUserDateKey(userDaysAgo(i, timezone), timezone);
     const daily = dailyMap.get(key) ?? 0;
     running += daily;
     trend.push({ date: key, cumulative: running, daily });

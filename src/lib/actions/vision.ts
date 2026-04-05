@@ -7,7 +7,7 @@ import { visionSchema, visionUpdateSchema, type VisionInput, type VisionUpdateIn
 import { generateGapAnalysis } from "@/lib/coaching/vision";
 import { ROUTES } from "@/lib/utils/constants";
 
-const MAX_VISION_DOMAINS = 6;
+const MAX_VISION_DOMAINS = 10;
 
 // ─── Create ──────────────────────────────────────
 
@@ -16,11 +16,20 @@ export async function createVision(data: VisionInput) {
   if (!user) return { success: false as const, error: "Not authenticated" };
 
   const parsed = visionSchema.safeParse(data);
-  if (!parsed.success) return { success: false as const, error: "Please check your inputs." };
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0]?.message;
+    return { success: false as const, error: firstError ?? "Please check your inputs." };
+  }
 
-  // Check for duplicate domain
-  const existing = await db.visionDomain.findUnique({
-    where: { userId_domain: { userId: user.id, domain: parsed.data.domain } },
+  const { domain, customLabel, vision: visionText, currentState } = parsed.data;
+
+  // Check for duplicate: preset domains are unique; custom domains unique by label
+  const existing = await db.visionDomain.findFirst({
+    where: {
+      userId: user.id,
+      domain,
+      customLabel: domain === "custom" ? (customLabel ?? null) : null,
+    },
   });
   if (existing) {
     return { success: false as const, error: "You already have a vision for this domain. Edit it instead." };
@@ -29,26 +38,28 @@ export async function createVision(data: VisionInput) {
   // Check limit
   const count = await db.visionDomain.count({ where: { userId: user.id } });
   if (count >= MAX_VISION_DOMAINS) {
-    return { success: false as const, error: "All domains are covered." };
+    return { success: false as const, error: `You can have up to ${MAX_VISION_DOMAINS} vision domains.` };
   }
 
   const vision = await db.visionDomain.create({
     data: {
       userId: user.id,
-      domain: parsed.data.domain,
-      vision: parsed.data.vision,
-      currentState: parsed.data.currentState || null,
+      domain,
+      customLabel: domain === "custom" ? (customLabel ?? null) : null,
+      vision: visionText,
+      currentState: currentState || null,
       priority: count, // next in order
     },
   });
 
   // Fire-and-forget gap analysis if current state provided
-  if (parsed.data.currentState) {
+  if (currentState) {
+    const domainLabel = domain === "custom" && customLabel ? customLabel : domain;
     generateGapAnalysis(
       vision.id,
-      vision.domain,
-      vision.vision,
-      parsed.data.currentState,
+      domainLabel,
+      visionText,
+      currentState,
     ).catch(() => {});
   }
 

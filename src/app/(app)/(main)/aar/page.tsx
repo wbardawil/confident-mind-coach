@@ -1,10 +1,16 @@
 import { getRecentAarSessions } from "@/lib/actions/aar";
+import { getCurrentUser } from "@/lib/utils/user";
 import { AarForm } from "@/components/aar/aar-form";
 import { ExpandableCard } from "@/components/shared/expandable-card";
 import { Separator } from "@/components/ui/separator";
+import { formatDate } from "@/lib/utils/format-date";
 
 export default async function AarPage() {
-  const recentSessions = await getRecentAarSessions(5);
+  const [recentSessions, user] = await Promise.all([
+    getRecentAarSessions(5),
+    getCurrentUser(),
+  ]);
+  const tz = user?.profile?.timezone ?? "UTC";
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -31,7 +37,7 @@ export default async function AarPage() {
               return (
                 <ExpandableCard
                   key={session.id}
-                  date={session.createdAt.toLocaleDateString("en-US", {
+                  date={formatDate(session.createdAt, tz, {
                     weekday: "short",
                     month: "short",
                     day: "numeric",

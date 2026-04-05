@@ -14,6 +14,11 @@ export async function getGoals() {
   return db.confidenceGoal.findMany({
     where: { userId: user.id },
     orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
+    include: {
+      systems: {
+        orderBy: [{ status: "asc" }, { createdAt: "asc" }],
+      },
+    },
   });
 }
 

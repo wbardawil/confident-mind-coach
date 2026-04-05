@@ -9,7 +9,7 @@ import { z } from "zod";
 import { db } from "@/lib/utils/db";
 import { generateCoaching } from "@/lib/ai/client";
 import { parseAiResponse } from "@/lib/ai/parse";
-import { VISION_DOMAIN_LABELS, type VisionDomainType } from "@/lib/validators/vision";
+import { getVisionDomainLabel } from "@/lib/validators/vision";
 
 // ─── Gap analysis ────────────────────────────────
 
@@ -27,7 +27,7 @@ export async function generateGapAnalysis(
   vision: string,
   currentState: string,
 ): Promise<void> {
-  const domainLabel = VISION_DOMAIN_LABELS[domain as VisionDomainType] ?? domain;
+  const domainLabel = domain;
 
   const prompt = {
     systemPrompt: `You are a strategic coach analyzing the gap between someone's current state and their 10x vision.
@@ -77,6 +77,7 @@ export async function getVisionContext(userId: string): Promise<string> {
     orderBy: { priority: "asc" },
     select: {
       domain: true,
+      customLabel: true,
       vision: true,
       currentState: true,
       gap: true,
@@ -87,7 +88,7 @@ export async function getVisionContext(userId: string): Promise<string> {
   if (visions.length === 0) return "";
 
   const blocks = visions.map((v, i) => {
-    const label = VISION_DOMAIN_LABELS[v.domain as VisionDomainType] ?? v.domain;
+    const label = getVisionDomainLabel(v.domain, v.customLabel);
     const isPrimary = i === 0;
     const header = `### ${label}${isPrimary ? " (primary focus)" : ""}`;
     const lines = [`${header}\n`, `**10x Vision:** ${v.vision}`];

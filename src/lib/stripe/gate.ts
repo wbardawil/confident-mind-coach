@@ -1,6 +1,12 @@
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
-import { getSessionLimit, isModelAllowed, type PlanTier } from "./config";
+import {
+  getSessionLimit,
+  getMonthlyMessageCap,
+  hasChatAccess,
+  isModelAllowed,
+  type PlanTier,
+} from "./config";
 
 /**
  * Hardcoded bypass until Stripe is configured.
@@ -22,7 +28,6 @@ export async function getUserTier(): Promise<PlanTier> {
 
 /**
  * Check if the user has exceeded their daily session limit (free tier only).
- * Counts CoachingSession entries created today.
  */
 export async function hasReachedSessionLimit(): Promise<boolean> {
   const user = await getCurrentUser();
@@ -59,4 +64,55 @@ export async function canUseModel(model: string): Promise<boolean> {
 export function getEffectiveModel(tier: string, preferredModel: string): string {
   if (isModelAllowed(tier, preferredModel)) return preferredModel;
   return "haiku-4.5";
+}
+
+// ─── Chat Message Rate Limiting ─────────────────
+
+/**
+ * Get the start of the current billing month (1st of month UTC).
+ */
+function startOfBillingMonth(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
+
+/**
+ * Count chat messages sent by a user this billing month.
+ */
+export async function getChatMessageCount(userId: string): Promise<number> {
+  const since = startOfBillingMonth();
+
+  return db.chatMessage.count({
+    where: {
+      session: { userId },
+      role: "user",
+      createdAt: { gte: since },
+    },
+  });
+}
+
+/**
+ * Check if the user can send another chat message.
+ * Returns { allowed, remaining, cap } for UI display.
+ */
+export async function checkChatLimit(userId: string, tier: string): Promise<{
+  allowed: boolean;
+  remaining: number;
+  cap: number;
+  used: number;
+}> {
+  if (!hasChatAccess(tier)) {
+    return { allowed: false, remaining: 0, cap: 0, used: 0 };
+  }
+
+  const cap = getMonthlyMessageCap(tier);
+  const used = await getChatMessageCount(userId);
+  const remaining = Math.max(0, cap - used);
+
+  return {
+    allowed: remaining > 0,
+    remaining,
+    cap,
+    used,
+  };
 }

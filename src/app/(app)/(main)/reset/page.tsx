@@ -1,10 +1,16 @@
 import { getRecentResetSessions } from "@/lib/actions/reset";
+import { getCurrentUser } from "@/lib/utils/user";
 import { ResetForm } from "@/components/reset/reset-form";
 import { ExpandableCard } from "@/components/shared/expandable-card";
 import { Separator } from "@/components/ui/separator";
+import { formatDate } from "@/lib/utils/format-date";
 
 export default async function ResetPage() {
-  const recentSessions = await getRecentResetSessions(5);
+  const [recentSessions, user] = await Promise.all([
+    getRecentResetSessions(5),
+    getCurrentUser(),
+  ]);
+  const tz = user?.profile?.timezone ?? "UTC";
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -29,7 +35,7 @@ export default async function ResetPage() {
               return (
                 <ExpandableCard
                   key={session.id}
-                  date={session.createdAt.toLocaleDateString("en-US", {
+                  date={formatDate(session.createdAt, tz, {
                     weekday: "short",
                     month: "short",
                     day: "numeric",

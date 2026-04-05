@@ -178,6 +178,10 @@ vi.mock("@/lib/coaching/vision", () => ({
   getVisionContext: vi.fn().mockResolvedValue(""),
 }));
 
+vi.mock("@/lib/coaching/systems", () => ({
+  getSystemsContext: vi.fn().mockResolvedValue(""),
+}));
+
 // ─── Import after mocks ────────────────────────
 import { submitReset } from "@/lib/actions/reset";
 

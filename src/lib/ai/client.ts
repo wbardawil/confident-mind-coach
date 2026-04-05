@@ -216,7 +216,7 @@ export function streamCoaching({
   systemPrompt,
   messages,
   model,
-  maxTokens = 1024,
+  maxTokens = 600,
   temperature = 0.6,
 }: StreamCoachingArgs) {
   const client = getClient();

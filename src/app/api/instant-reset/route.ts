@@ -16,12 +16,12 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Tier check — instant reset requires Pro+
+  // Tier check — instant reset requires Coach plan+
   const bypass = true; // TODO: revert when Stripe is live
   const tier = bypass ? "elite" : (user.subscriptionTier ?? "free");
-  if (tier === "free") {
+  if (tier === "free" || tier === "confident") {
     return NextResponse.json(
-      { error: "Upgrade to Pro to access Instant Reset." },
+      { error: "Upgrade to the Coach plan to access Instant Reset." },
       { status: 403 },
     );
   }

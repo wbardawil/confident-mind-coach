@@ -4,6 +4,7 @@ import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
 import { scanForCrisis } from "@/lib/safety/crisis-detect";
 import { getSessionLimit } from "@/lib/stripe/config";
+import { startOfUserDay } from "@/lib/utils/date";
 import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { generateCoaching, type CoachingRequest } from "@/lib/ai/client";
 import { parseAiResponse } from "@/lib/ai/parse";
@@ -11,6 +12,7 @@ import { friendlyAiError } from "@/lib/utils/errors";
 import { logUsage } from "@/lib/ai/usage-logger";
 import { getPersonalityContext } from "@/lib/coaching/personality";
 import { getVisionContext } from "@/lib/coaching/vision";
+import { getSystemsContext } from "@/lib/coaching/systems";
 
 // ─── Shared result types ──────────────────────
 
@@ -93,8 +95,7 @@ export async function runCoachingFlow<TInput, TOutput>(
   const tier = bypass ? "elite" : (user.subscriptionTier ?? "free");
   const limit = getSessionLimit(tier);
   if (limit !== Infinity) {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    const startOfDay = startOfUserDay(user.profile?.timezone ?? "UTC");
     const todayCount = await db.coachingSession.count({
       where: { userId: user.id, createdAt: { gte: startOfDay } },
     });
@@ -160,6 +161,12 @@ export async function runCoachingFlow<TInput, TOutput>(
   const visionContext = await getVisionContext(user.id);
   if (visionContext) {
     prompt.systemPrompt += `\n\n${visionContext}`;
+  }
+
+  // Inject active systems context into the system prompt
+  const systemsContext = await getSystemsContext(user.id);
+  if (systemsContext) {
+    prompt.systemPrompt += `\n\n${systemsContext}`;
   }
 
   let rawResponse: string;

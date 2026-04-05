@@ -51,6 +51,8 @@ ${achievements.map((a, i) => `${i + 1}. **${a.title}** — ${a.description}`).jo
 
 You remember your previous coaching sessions with this person. The following is what you recall from working with them. This IS your memory — do not say "I don't have memory of previous sessions" or "I can't recall past conversations." You CAN and you DO. Reference these naturally as a coach who has an ongoing relationship with their client.
 
+CRITICAL: When recalling details from past conversations — names, relationships, stories, specific words they used — be EXACT. If they told you about their father, say "father", not "father-in-law." If they mentioned a colleague named Sarah, don't call her Sara or Susan. If you're unsure of a detail, ask rather than guess. Accuracy builds trust; getting personal details wrong breaks it.
+
 When they come back, pick up where you left off. Ask about things they mentioned last time. Follow up on commitments they made. Notice patterns across sessions. You are their coach — you know them.
 
 ${coachingMemory}`
@@ -94,12 +96,13 @@ Respond in natural conversational language. No JSON. No markdown headers. Just t
 
 /**
  * Format DB messages for the Anthropic API.
- * Takes the last 20 messages and ensures the array starts with a "user" role.
+ * Takes the last 30 messages and ensures the array starts with a "user" role.
+ * 30 messages ≈ 15 exchanges ≈ ~7,500 tokens of conversation context.
  */
 export function buildChatMessages(
   history: Array<{ role: string; content: string }>,
 ): Array<{ role: "user" | "assistant"; content: string }> {
-  const recent = history.slice(-20);
+  const recent = history.slice(-30);
 
   // Anthropic requires the first message to be from the user
   const firstUserIdx = recent.findIndex((m) => m.role === "user");

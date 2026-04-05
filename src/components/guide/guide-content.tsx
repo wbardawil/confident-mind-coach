@@ -26,6 +26,9 @@ import {
   Lightbulb,
   HelpCircle,
   ArrowRight,
+  Compass,
+  Cog,
+  FileText,
 } from "lucide-react";
 import { ROUTES } from "@/lib/utils/constants";
 import { cn } from "@/lib/utils";
@@ -59,9 +62,9 @@ const tools = [
     href: ROUTES.COACH,
     frequency: "Daily / As needed",
     frequencyColor: "bg-blue-500/10 text-blue-700",
-    what: "Free-form conversation with your AI confidence coach. It remembers your history, goals, challenges, and past sessions — so it gets sharper over time.",
+    what: "Free-form conversation with your AI confidence coach. It extracts and remembers specific facts from every conversation — names, stories, relationships, commitments — so it recalls your life accurately across sessions. Browse past chats via the History panel and organize them into folders.",
     when: "After your ESP to go deeper, before a big moment for encouragement, or anytime you need to think out loud.",
-    tip: "Talk to it like a real coach. Be honest about what you're feeling. The more context you give, the more personal the coaching becomes.",
+    tip: "Talk to it like a real coach. Be honest about what you're feeling. The more context you give, the more personal the coaching becomes. Your coach model can be changed in Settings.",
   },
   {
     name: "Instant Reset",
@@ -114,14 +117,24 @@ const tools = [
     tip: "Include specific details — the date, what you felt, what someone said. Vividness makes memories more powerful as evidence.",
   },
   {
-    name: "Goals",
+    name: "10x Vision",
+    icon: Compass,
+    href: ROUTES.VISION,
+    frequency: "Set up once, evolve over time",
+    frequencyColor: "bg-violet-500/10 text-violet-700",
+    what: "Define what 10x looks like across your life domains — career, financial, personal, health, relationships, or any custom domain you name. Your coach uses your vision to connect daily work to your bigger picture. Includes AI gap analysis between where you are and where you're going.",
+    when: "Set your primary vision early. Add more domains as you grow. Revisit when your direction shifts.",
+    tip: "Be vivid and specific. \"Making more money\" is weak. \"Running a $10M agency with 3 team leads and 40% margins\" gives your coach something real to work with.",
+  },
+  {
+    name: "Goals + Systems",
     icon: Target,
     href: ROUTES.GOALS,
     frequency: "Weekly check-in",
     frequencyColor: "bg-indigo-500/10 text-indigo-700",
-    what: "1-5 specific outcomes you're working toward. Each goal tracks self-efficacy over time and links to your coaching deposits.",
-    when: "Set them when you start. Update efficacy scores weekly. Link your daily ESP and coaching sessions to specific goals.",
-    tip: "The self-efficacy score is the real metric. Watch it climb as you accumulate evidence — that's confidence becoming belief.",
+    what: "1-5 specific outcomes you're working toward. Each goal tracks self-efficacy over time and links to your coaching deposits. Goals come with AI-proposed Systems — repeatable daily or weekly actions that build momentum (like \"15-min prospecting block\" or \"weekly win journal\"). Track streaks as you complete them.",
+    when: "Set goals when you start. Update efficacy scores weekly. Complete your systems daily to build consistency.",
+    tip: "The self-efficacy score is the real metric. Watch it climb as you accumulate evidence — that's confidence becoming belief. Systems turn goals into habits.",
   },
   {
     name: "Challenges",
@@ -143,6 +156,26 @@ const tools = [
     when: "Check it when you need a reminder of how far you've come. The trend matters more than any single day.",
     tip: "A negative day doesn't erase positive ones. Confidence compounds. Focus on the trend line, not individual entries.",
   },
+  {
+    name: "Documents",
+    icon: FileText,
+    href: ROUTES.SETTINGS,
+    frequency: "Upload once",
+    frequencyColor: "bg-slate-500/10 text-slate-700",
+    what: "Upload personality assessments (DISC, MBTI, StrengthsFinder), resumes, or notes to give your coach deeper context. Text is extracted and woven into coaching prompts — your coach reads and references these naturally.",
+    when: "Upload during setup or anytime you have a new assessment. Supports PDF, DOCX, MD, and TXT.",
+    tip: "A StrengthsFinder or DISC report dramatically improves coaching quality. Your coach will reference your specific personality type and strengths.",
+  },
+  {
+    name: "Settings",
+    icon: Cog,
+    href: ROUTES.SETTINGS,
+    frequency: "Set up once",
+    frequencyColor: "bg-slate-500/10 text-slate-700",
+    what: "Edit your coaching profile (role, domain, strengths, challenges), choose your AI coach model (Haiku, Sonnet, or Opus), set your timezone for accurate date tracking, and manage uploaded documents.",
+    when: "During initial setup and whenever your situation changes — new job, new focus area, new goals.",
+    tip: "Upgrading to a more capable model (Sonnet or Opus) noticeably improves coaching depth and nuance, especially for complex personal topics.",
+  },
 ];
 
 /* ── First week plan ────────────────────────────── */
@@ -151,17 +184,17 @@ const firstWeek = [
   {
     day: "Day 1",
     title: "Build your foundation",
-    tasks: ["Fill in your Top Ten confidence memories", "Complete your first Daily ESP", "Set 1-3 confidence goals"],
+    tasks: ["Fill in your Top Ten confidence memories", "Complete your first Daily ESP", "Set 1-3 confidence goals", "Upload a personality assessment in Settings (if you have one)"],
   },
   {
     day: "Day 2",
     title: "Start the conversation",
-    tasks: ["Daily ESP (morning)", "Talk to your Coach about what you're working on", "Explore the Confidence Ledger"],
+    tasks: ["Daily ESP (morning)", "Talk to your Coach about what you're working on", "Define your primary 10x Vision", "Explore the Confidence Ledger"],
   },
   {
     day: "Day 3",
     title: "Prepare for something",
-    tasks: ["Daily ESP", "Run a Pregame for an upcoming event", "Notice your confidence score growing"],
+    tasks: ["Daily ESP", "Run a Pregame for an upcoming event", "Complete your first Goal System", "Notice your confidence score growing"],
   },
   {
     day: "Day 4",
@@ -176,7 +209,7 @@ const firstWeek = [
   {
     day: "Day 6-7",
     title: "Make it yours",
-    tasks: ["Daily ESP (keep the streak)", "Continue your Challenge", "Use Instant Reset if you need it — it's always there"],
+    tasks: ["Daily ESP (keep the streak)", "Continue your Challenge", "Complete your daily Systems", "Use Instant Reset if you need it — it's always there"],
   },
 ];
 
@@ -194,6 +227,10 @@ const faqs = [
   {
     q: "How is this different from affirmation apps?",
     a: "Affirmation apps give you generic positive statements. This system builds confidence from YOUR evidence — real things you've done, real strengths you've demonstrated. Your coach knows your history and ties every session back to proof, not platitudes.",
+  },
+  {
+    q: "Does my coach really remember past conversations?",
+    a: "Yes. After each chat, the system extracts specific facts — names, relationships, stories, commitments — and stores them as structured memory. When you start a new chat, these facts are injected into the coach's context so it recalls details accurately. You can also browse and reopen past chats from the History panel.",
   },
   {
     q: "How long until I see results?",

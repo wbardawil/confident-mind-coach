@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/utils/db";
 import { getCurrentUser } from "@/lib/utils/user";
-import { utcDaysAgo } from "@/lib/utils/date";
+import { utcDaysAgo, startOfUserDay } from "@/lib/utils/date";
 
 interface RecommendedAction {
   label: string;
@@ -14,9 +14,9 @@ export async function getDashboardData() {
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const timezone = user.profile?.timezone ?? "UTC";
   const fourteenDaysAgo = utcDaysAgo(14);
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
+  const startOfDay = startOfUserDay(timezone);
 
   const [
     recentSessions,

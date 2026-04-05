@@ -34,6 +34,8 @@ model User {
   ledgerEntries    LedgerEntry[]
   coachingSessions CoachingSession[]
   chatSessions     ChatSession[]
+  chatFolders      ChatFolder[]
+  memoryFacts      MemoryFact[]
   enrollments      ChallengeEnrollment[]
   journalEntries           CoachingJournal[]
   personalityAssessments   PersonalityAssessment[]
@@ -99,7 +101,8 @@ model VisionDomain {
   id           String   @id @default(cuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  domain       String   // career | financial | personal | health | relationship | other
+  domain       String   // career | financial | personal | health | relationship | custom
+  customLabel  String?  // user-defined label when domain = "custom"
   vision       String   // the 10x vision description
   currentState String?  // where they are now
   gap          String?  // AI-generated gap analysis
@@ -108,7 +111,7 @@ model VisionDomain {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  @@unique([userId, domain])
+  @@unique([userId, domain, customLabel])
 }
 
 // ─── ACHIEVEMENT (Top Ten confidence memories) ──
@@ -129,19 +132,37 @@ model Achievement {
 // ─── CONFIDENCE GOAL (goal-directed confidence) ──
 
 model ConfidenceGoal {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   title           String // "Grow cash flow to $15K/month"
   description     String? // why this goal matters
   category        String // career | financial | personal | health | relationship | other
   targetDate      DateTime? // optional deadline
-  efficacyScore   Int      @default(5) // 1-10: "How confident am I that I can achieve this?"
-  status          String   @default("active") // active | achieved | paused
-  evidenceCount   Int      @default(0) // cached count of linked ledger deposits
+  efficacyScore   Int          @default(5) // 1-10: "How confident am I that I can achieve this?"
+  status          String       @default("active") // active | achieved | paused
+  evidenceCount   Int          @default(0) // cached count of linked ledger deposits
   visionDomainId  String?  // optional link to VisionDomain
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  systems         GoalSystem[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+// ─── GOAL SYSTEM (AI-proposed daily/weekly actions) ──
+
+model GoalSystem {
+  id          String         @id @default(cuid())
+  goalId      String
+  goal        ConfidenceGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String // "Cold-call 3 prospects every morning"
+  description String? // why this system works for this person
+  frequency   String // daily | weekly | per-event
+  status      String         @default("active") // active | paused | completed
+  source      String         @default("ai") // ai | user — who created it
+  streak      Int            @default(0) // consecutive completions
+  lastDoneAt  DateTime? // last time user marked this done
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 // ─── AFFIRMATION ───────────────────────────────
@@ -224,11 +245,26 @@ model CoachingSession {
 
 // ─── CHAT SESSION (conversational coaching) ─────
 
+model ChatFolder {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int           @default(0)
+  createdAt DateTime      @default(now())
+  sessions  ChatSession[]
+
+  @@unique([userId, name])
+}
+
 model ChatSession {
   id        String        @id @default(cuid())
   userId    String
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String?
+  summary   String?       // AI-generated factual summary of the conversation
+  folderId  String?
+  folder    ChatFolder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   messages  ChatMessage[]
@@ -243,6 +279,28 @@ model ChatMessage {
   flagged       Boolean     @default(false)
   flaggedReason String?
   createdAt     DateTime    @default(now())
+}
+
+// ─── MEMORY FACT (Zep-grade structured memory) ─
+
+model MemoryFact {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String    // person | relationship | story | goal | commitment | preference | emotion | context
+  subject     String    // who/what the fact is about ("user", "user.father", "Sarah")
+  predicate   String    // the relationship or attribute ("works_as", "told_story_about", "committed_to")
+  content     String    // the actual fact text
+  sourceId    String?   // chat session ID that produced this fact
+  confidence  Float     @default(1.0) // 0-1, reduced if contradicted
+  active      Boolean   @default(true) // false = superseded by newer fact
+  learnedAt   DateTime  @default(now()) // when the fact was first learned
+  validUntil  DateTime? // null = still valid; set when superseded
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, active])
+  @@index([userId, category])
 }
 
 // ─── LEDGER ENTRY (confidence accounting) ──────

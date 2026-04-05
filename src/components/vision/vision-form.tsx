@@ -3,6 +3,7 @@
 import { useTransition, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import { createVision, updateVision } from "@/lib/actions/vision";
 
 interface VisionFormProps {
   trigger: React.ReactNode;
-  /** Domains the user already has a vision for — hide them from the dropdown */
+  /** Domains the user already has a vision for — hide preset ones from the dropdown */
   takenDomains?: string[];
   /** For editing an existing vision */
   defaultValues?: { id?: string; domain?: string; vision?: string; currentState?: string };
@@ -40,23 +41,28 @@ export function VisionForm({
   const [error, setError] = useState<string | null>(null);
   const isEditing = !!defaultValues?.id;
 
+  // For create: hide preset domains already taken, but always show "custom"
   const availableDomains = VISION_DOMAINS.filter(
-    (d) => !takenDomains.includes(d) || d === defaultValues?.domain,
+    (d) => d === "custom" || !takenDomains.includes(d) || d === defaultValues?.domain,
   );
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors: formErrors },
   } = useForm<VisionInput>({
     resolver: zodResolver(visionSchema),
     defaultValues: {
       domain: (defaultValues?.domain as VisionDomainType) ?? availableDomains[0] ?? "career",
+      customLabel: "",
       vision: defaultValues?.vision ?? "",
       currentState: defaultValues?.currentState ?? "",
     },
   });
+
+  const selectedDomain = watch("domain");
 
   function onSubmit(data: VisionInput) {
     setError(null);
@@ -95,13 +101,30 @@ export function VisionForm({
               >
                 {availableDomains.map((d) => (
                   <option key={d} value={d}>
-                    {VISION_DOMAIN_LABELS[d]}
+                    {d === "custom" ? "Custom Domain..." : VISION_DOMAIN_LABELS[d]}
                   </option>
                 ))}
               </select>
               {formErrors.domain?.message && (
                 <p className="text-sm text-destructive">
                   {formErrors.domain.message}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Custom domain label — only when "custom" selected */}
+          {!isEditing && selectedDomain === "custom" && (
+            <div className="space-y-2">
+              <Label>Domain Name</Label>
+              <Input
+                {...register("customLabel")}
+                placeholder="e.g. Spirituality, Parenting, Creativity..."
+                maxLength={100}
+              />
+              {formErrors.customLabel?.message && (
+                <p className="text-sm text-destructive">
+                  {formErrors.customLabel.message}
                 </p>
               )}
             </div>

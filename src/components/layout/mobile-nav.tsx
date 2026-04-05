@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Settings,
   HelpCircle,
+  Compass,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ const navGroups = [
   {
     label: "Your Profile",
     items: [
+      { href: ROUTES.VISION, label: "10x Vision", icon: Compass },
       { href: ROUTES.GOALS, label: "Goals", icon: Target },
       { href: ROUTES.TOP_TEN, label: "Top Ten", icon: Trophy },
       { href: ROUTES.LEDGER, label: "Confidence Ledger", icon: BookOpen },
@@ -83,12 +85,12 @@ export function MobileNav() {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="flex w-64 flex-col p-0">
             <SheetTitle className="px-6 py-5 text-lg font-semibold">
               {APP_NAME}
             </SheetTitle>
             <Separator />
-            <nav className="px-3 py-4">
+            <nav className="flex-1 overflow-y-auto px-3 py-4">
               {navGroups.map((group) => (
                 <div key={group.label} className="mb-4">
                   <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
