@@ -115,8 +115,16 @@ export function isModelAllowed(tier: string, model: string): boolean {
 /** Tiers that include conversational coach access. */
 const CHAT_TIERS: PlanTier[] = ["coach", "pro", "elite"];
 
+/** Trial users on Confident plan get 100 free chat messages. */
+const TRIAL_TIERS: PlanTier[] = ["confident"];
+const TRIAL_MESSAGE_CAP = 100;
+
 export function hasChatAccess(tier: string): boolean {
-  return CHAT_TIERS.includes(tier as PlanTier);
+  return CHAT_TIERS.includes(tier as PlanTier) || TRIAL_TIERS.includes(tier as PlanTier);
+}
+
+export function isChatTrial(tier: string): boolean {
+  return TRIAL_TIERS.includes(tier as PlanTier);
 }
 
 // ─── Message Caps ─────────────────────────────
@@ -126,10 +134,10 @@ export function hasChatAccess(tier: string): boolean {
 
 const MONTHLY_MESSAGE_CAPS: Record<PlanTier, number> = {
   free: 0,
-  confident: 0,
-  coach: 900,   // ~60 sessions of 15 msgs (2/day)
-  pro: 900,     // ~60 sessions of 15 msgs (2/day)
-  elite: 450,   // ~30 sessions of 15 msgs (1/day)
+  confident: TRIAL_MESSAGE_CAP, // 30-day free trial (100 msgs)
+  coach: 900,                   // ~60 sessions of 15 msgs (2/day)
+  pro: 900,                     // ~60 sessions of 15 msgs (2/day)
+  elite: 450,                   // ~30 sessions of 15 msgs (1/day)
 };
 
 export function getMonthlyMessageCap(tier: string): number {

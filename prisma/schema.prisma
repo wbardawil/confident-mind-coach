@@ -35,6 +35,7 @@ model User {
   coachingSessions CoachingSession[]
   chatSessions     ChatSession[]
   chatFolders      ChatFolder[]
+  memoryFacts      MemoryFact[]
   enrollments      ChallengeEnrollment[]
   journalEntries           CoachingJournal[]
   personalityAssessments   PersonalityAssessment[]
@@ -278,6 +279,28 @@ model ChatMessage {
   flagged       Boolean     @default(false)
   flaggedReason String?
   createdAt     DateTime    @default(now())
+}
+
+// ─── MEMORY FACT (Zep-grade structured memory) ─
+
+model MemoryFact {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String    // person | relationship | story | goal | commitment | preference | emotion | context
+  subject     String    // who/what the fact is about ("user", "user.father", "Sarah")
+  predicate   String    // the relationship or attribute ("works_as", "told_story_about", "committed_to")
+  content     String    // the actual fact text
+  sourceId    String?   // chat session ID that produced this fact
+  confidence  Float     @default(1.0) // 0-1, reduced if contradicted
+  active      Boolean   @default(true) // false = superseded by newer fact
+  learnedAt   DateTime  @default(now()) // when the fact was first learned
+  validUntil  DateTime? // null = still valid; set when superseded
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, active])
+  @@index([userId, category])
 }
 
 // ─── LEDGER ENTRY (confidence accounting) ──────

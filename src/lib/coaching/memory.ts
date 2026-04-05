@@ -4,6 +4,7 @@ import { getGoalContext } from "@/lib/actions/goals";
 import { getPersonalityContext } from "@/lib/coaching/personality";
 import { getVisionContext } from "@/lib/coaching/vision";
 import { getSystemsContext } from "@/lib/coaching/systems";
+import { getActiveFacts } from "@/lib/coaching/memory-facts";
 
 /**
  * Memory depth by subscription tier.
@@ -34,6 +35,7 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
     personalityContext,
     visionContext,
     systemsContext,
+    memoryFacts,
   ] = await Promise.all([
     // ESP entries (depth by tier)
     db.eSPEntry.findMany({
@@ -97,11 +99,12 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
       select: { text: true, source: true },
     }),
 
-    // Uploaded documents (extracted content, truncated)
+    // Uploaded documents (capped at 5, truncated to 1000 chars each)
     db.userDocument.findMany({
       where: { userId },
       select: { fileName: true, category: true, extractedContent: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
+      take: 5,
     }),
 
     // Active confidence goals
@@ -137,9 +140,32 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
 
     // Active systems (daily/weekly actions)
     getSystemsContext(userId),
+
+    // Structured memory facts (Zep-grade, capped at 100)
+    getActiveFacts(userId, 100),
   ]);
 
   const sections: string[] = [];
+
+  // ── Memory facts (PRIMARY memory source — highest fidelity) ──
+  if (memoryFacts.length > 0) {
+    // Group facts by subject for readability
+    const bySubject = new Map<string, string[]>();
+    for (const fact of memoryFacts) {
+      const key = fact.subject;
+      const arr = bySubject.get(key) ?? [];
+      arr.push(`- [${fact.category}] ${fact.content}`);
+      bySubject.set(key, arr);
+    }
+
+    const factBlocks = Array.from(bySubject.entries())
+      .map(([subject, facts]) => `**${subject}:**\n${facts.join("\n")}`)
+      .join("\n\n");
+
+    sections.push(
+      `## Known facts about this person\n\nThese are verified facts from your conversations. They are EXACT — do not paraphrase, embellish, or confuse any detail. If a fact says "father", say "father". If it says "Sarah", say "Sarah".\n\n${factBlocks}`,
+    );
+  }
 
   // ── Structured personality data (highest-value context) ──
   if (personalityContext) {
@@ -251,7 +277,7 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
   if (documents.length > 0) {
     const docLines = documents.map((doc) => {
       // Cap each document at ~2000 chars in memory context
-      const content = truncate(doc.extractedContent, 2000);
+      const content = truncate(doc.extractedContent, 1000);
       return `### ${doc.category.toUpperCase()}: ${doc.fileName}\n\n${content}`;
     });
     sections.push(`## User-uploaded documents\n\n${docLines.join("\n\n")}`);

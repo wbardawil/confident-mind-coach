@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 import { streamCoaching, resolveCoachModel, getModelLabel } from "@/lib/ai/client";
 import { writeJournalEntry } from "@/lib/coaching/journal";
 import { refreshSessionSummary } from "@/lib/coaching/session-summary";
+import { extractSessionFacts } from "@/lib/coaching/memory-facts";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
 import { getCoachingMemory } from "@/lib/coaching/memory";
 import { getEffectiveModel, checkChatLimit } from "@/lib/stripe/gate";
@@ -179,7 +180,8 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // Fire-and-forget: refresh session summary for future memory
+        // Fire-and-forget: extract facts + refresh summary for future memory
+        extractSessionFacts(session!.id, user.id).catch(() => {});
         refreshSessionSummary(session!.id).catch(() => {});
 
         // Fire-and-forget: coach writes session notes

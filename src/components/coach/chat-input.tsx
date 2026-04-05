@@ -5,6 +5,7 @@ import { Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { CHAT_MESSAGE_MAX_CHARS } from "@/lib/validators/coach";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -17,6 +18,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const handleSend = useCallback(() => {
     const value = textareaRef.current?.value.trim();
     if (!value || disabled) return;
+    if (value.length > CHAT_MESSAGE_MAX_CHARS) return;
     onSend(value);
     if (textareaRef.current) {
       textareaRef.current.value = "";
@@ -38,6 +40,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         placeholder="Talk to your coach..."
         className="min-h-[44px] max-h-48 resize-none overflow-y-auto"
         rows={2}
+        maxLength={CHAT_MESSAGE_MAX_CHARS}
         disabled={disabled}
         onInput={handleInput}
       />
