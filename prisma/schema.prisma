@@ -290,6 +290,27 @@ model ChallengeDayEntry {
   createdAt    DateTime            @default(now())
 }
 
+// ─── USAGE LOG (AI call tracking for monitoring) ──
+
+model UsageLog {
+  id               String   @id @default(cuid())
+  userId           String
+  feature          String   // coach | esp | pregame | reset | aar | summary | facts | journal | challenge | vision | personality | instant-reset
+  model            String   // claude-haiku-4-5, claude-sonnet-4, etc.
+  inputTokens      Int
+  outputTokens     Int
+  cacheReadTokens  Int      @default(0)
+  cacheWriteTokens Int      @default(0)
+  costCents        Float    // computed cost in cents
+  latencyMs        Int
+  success          Boolean  @default(true)
+  errorType        String?  // rate_limit | timeout | parse_failure | etc.
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([feature, createdAt])
+}
+
 // ─── COACHING JOURNAL (AI-authored coaching notes) ──
 
 model CoachingJournal {

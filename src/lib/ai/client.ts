@@ -85,6 +85,15 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Usage metadata extracted from an Anthropic response. */
+export interface AiUsageMetadata {
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+}
+
 function extractTextFromResponse(response: Anthropic.Messages.Message): string {
   const text = response.content
     .filter((block) => block.type === "text")
@@ -99,12 +108,29 @@ function extractTextFromResponse(response: Anthropic.Messages.Message): string {
   return text;
 }
 
+function extractUsageMetadata(response: Anthropic.Messages.Message): AiUsageMetadata {
+  const usage = response.usage;
+  return {
+    model: response.model,
+    inputTokens: usage.input_tokens ?? 0,
+    outputTokens: usage.output_tokens ?? 0,
+    cacheReadTokens: (usage as unknown as Record<string, number>).cache_read_input_tokens ?? 0,
+    cacheWriteTokens: (usage as unknown as Record<string, number>).cache_creation_input_tokens ?? 0,
+  };
+}
+
+/** Result from generateCoaching, including text and usage metadata. */
+export interface GenerateCoachingResult {
+  text: string;
+  usage: AiUsageMetadata;
+}
+
 async function callAnthropicOnce({
   systemPrompt,
   userMessage,
   maxTokens = 500,
   temperature = 0.4,
-}: GenerateCoachingArgs): Promise<string> {
+}: GenerateCoachingArgs): Promise<GenerateCoachingResult> {
   const client = getClient();
 
   const response = await client.messages.create({
@@ -126,7 +152,10 @@ async function callAnthropicOnce({
     ],
   });
 
-  return extractTextFromResponse(response);
+  return {
+    text: extractTextFromResponse(response),
+    usage: extractUsageMetadata(response),
+  };
 }
 
 function isRetryableError(error: unknown): boolean {
@@ -207,7 +236,7 @@ export function streamCoaching({
   });
 }
 
-export async function generateCoaching(args: GenerateCoachingArgs): Promise<string> {
+export async function generateCoaching(args: GenerateCoachingArgs): Promise<GenerateCoachingResult> {
   const attempts = 3;
   let lastError: unknown;
 

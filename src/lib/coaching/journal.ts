@@ -63,7 +63,7 @@ Write in first person as the coach. Be specific — reference their actual words
 
 If this is a weekly/monthly/quarterly synthesis, focus on patterns across time, trajectory of change, and emerging themes rather than individual session details.`;
 
-    const note = await generateCoaching({
+    const result = await generateCoaching({
       systemPrompt,
       userMessage: input.context,
       maxTokens: 300,
@@ -75,7 +75,7 @@ If this is a weekly/monthly/quarterly synthesis, focus on patterns across time, 
         userId: input.userId,
         type: input.type,
         sourceId: input.sourceId ?? null,
-        content: note,
+        content: result.text,
         period: input.type === "weekly" || input.type === "monthly" || input.type === "quarterly"
           ? getPeriodLabel(input.type)
           : null,

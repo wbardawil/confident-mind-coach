@@ -8,6 +8,7 @@ import { ESCALATION_MESSAGE } from "@/lib/safety/escalation";
 import { generateCoaching, type CoachingRequest } from "@/lib/ai/client";
 import { parseAiResponse } from "@/lib/ai/parse";
 import { friendlyAiError } from "@/lib/utils/errors";
+import { logUsage } from "@/lib/ai/usage-logger";
 import { getPersonalityContext } from "@/lib/coaching/personality";
 import { getVisionContext } from "@/lib/coaching/vision";
 
@@ -162,8 +163,22 @@ export async function runCoachingFlow<TInput, TOutput>(
   }
 
   let rawResponse: string;
+  const startTime = Date.now();
   try {
-    rawResponse = await generateCoaching(prompt);
+    const aiResponse = await generateCoaching(prompt);
+    rawResponse = aiResponse.text;
+
+    // Fire-and-forget usage log
+    logUsage({
+      userId: user.id,
+      feature: config.mode.toLowerCase(),
+      model: aiResponse.usage.model,
+      inputTokens: aiResponse.usage.inputTokens,
+      outputTokens: aiResponse.usage.outputTokens,
+      cacheReadTokens: aiResponse.usage.cacheReadTokens,
+      cacheWriteTokens: aiResponse.usage.cacheWriteTokens,
+      latencyMs: Date.now() - startTime,
+    });
   } catch (e) {
     return {
       ok: false,
@@ -172,9 +187,50 @@ export async function runCoachingFlow<TInput, TOutput>(
   }
 
   // 6. Parse + Zod validate AI output
-  const aiResult = parseAiResponse(rawResponse, config.responseSchema);
+  let aiResult = parseAiResponse(rawResponse, config.responseSchema);
+
+  // 6b. Retry once on parse failure with error context
+  if (!aiResult.success) {
+    try {
+      const retryStartTime = Date.now();
+      const retryPrompt = {
+        ...prompt,
+        userMessage: `${prompt.userMessage}\n\nIMPORTANT: Your previous response failed validation: ${aiResult.error}. Please return valid JSON matching the required schema.`,
+      };
+      const retryResponse = await generateCoaching(retryPrompt);
+      rawResponse = retryResponse.text;
+
+      logUsage({
+        userId: user.id,
+        feature: config.mode.toLowerCase(),
+        model: retryResponse.usage.model,
+        inputTokens: retryResponse.usage.inputTokens,
+        outputTokens: retryResponse.usage.outputTokens,
+        cacheReadTokens: retryResponse.usage.cacheReadTokens,
+        cacheWriteTokens: retryResponse.usage.cacheWriteTokens,
+        latencyMs: Date.now() - retryStartTime,
+        errorType: "parse_retry",
+      });
+
+      aiResult = parseAiResponse(rawResponse, config.responseSchema);
+    } catch {
+      // Retry failed — fall through to the original error handling
+    }
+  }
 
   if (!aiResult.success) {
+    // Log parse failure
+    logUsage({
+      userId: user.id,
+      feature: config.mode.toLowerCase(),
+      model: "unknown",
+      inputTokens: 0,
+      outputTokens: 0,
+      latencyMs: Date.now() - startTime,
+      success: false,
+      errorType: "parse_failure",
+    });
+
     await db.coachingSession.create({
       data: {
         userId: user.id,

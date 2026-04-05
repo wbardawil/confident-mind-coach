@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 import { streamCoaching, resolveCoachModel, getModelLabel } from "@/lib/ai/client";
+import { logUsage } from "@/lib/ai/usage-logger";
 import { writeJournalEntry } from "@/lib/coaching/journal";
 import { buildCoachSystemPrompt, buildChatMessages } from "@/lib/coaching/coach";
 import { getCoachingMemory } from "@/lib/coaching/memory";
@@ -133,6 +134,7 @@ export async function POST(req: NextRequest) {
   const effectivePreference = getEffectiveModel(tier, modelPreference ?? "haiku-4.5");
   const coachModel = await resolveCoachModel(effectivePreference);
   const resolvedLabel = getModelLabel(effectivePreference);
+  const streamStartTime = Date.now();
   const stream = streamCoaching({ systemPrompt, messages, model: coachModel });
 
   // 9. Build a ReadableStream that forwards text deltas and persists the result
@@ -153,6 +155,24 @@ export async function POST(req: NextRequest) {
               encoder.encode(`data: ${JSON.stringify({ text })}\n\n`),
             );
           }
+        }
+
+        // Log usage from the final message
+        try {
+          const finalMessage = await stream.finalMessage();
+          const usage = finalMessage.usage;
+          logUsage({
+            userId: user.id,
+            feature: "coach",
+            model: finalMessage.model,
+            inputTokens: usage.input_tokens ?? 0,
+            outputTokens: usage.output_tokens ?? 0,
+            cacheReadTokens: (usage as unknown as Record<string, number>).cache_read_input_tokens ?? 0,
+            cacheWriteTokens: (usage as unknown as Record<string, number>).cache_creation_input_tokens ?? 0,
+            latencyMs: Date.now() - streamStartTime,
+          });
+        } catch {
+          // Usage logging should never block the response
         }
 
         // Persist assistant message

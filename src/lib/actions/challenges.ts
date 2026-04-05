@@ -132,17 +132,17 @@ If the reflection is filler or meaningless, give 0 points.${languageInstruction}
   let aiResponse: string;
   let qualityScore = 0;
   try {
-    const raw = await generateCoaching({
+    const aiResult = await generateCoaching({
       systemPrompt,
       userMessage: reflection,
     });
     try {
-      const parsed = JSON.parse(raw);
-      aiResponse = parsed.coaching || raw;
+      const parsed = JSON.parse(aiResult.text);
+      aiResponse = parsed.coaching || aiResult.text;
       qualityScore = Math.max(0, Math.min(3, Math.round(Number(parsed.scoreDelta) || 0)));
     } catch {
       // If JSON parsing fails, use raw response with 0 points (safe fallback)
-      aiResponse = raw;
+      aiResponse = aiResult.text;
       qualityScore = 0;
     }
   } catch {

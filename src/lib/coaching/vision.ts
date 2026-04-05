@@ -52,8 +52,8 @@ ${currentState}`,
   };
 
   try {
-    const raw = await generateCoaching(prompt);
-    const result = parseAiResponse(raw, gapAnalysisSchema);
+    const aiResult = await generateCoaching(prompt);
+    const result = parseAiResponse(aiResult.text, gapAnalysisSchema);
     if (result.success) {
       await db.visionDomain.update({
         where: { id: visionDomainId },

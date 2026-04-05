@@ -7,6 +7,7 @@ import { SubscriptionCard } from "@/components/settings/subscription-card";
 import { DocumentUpload } from "@/components/settings/document-upload";
 import { DocumentList } from "@/components/settings/document-list";
 import { PersonalityAssessments } from "@/components/settings/personality-assessments";
+import { ExportButton } from "@/components/settings/export-button";
 import { getDocuments } from "@/lib/actions/documents";
 import { getPersonalityAssessments } from "@/lib/actions/personality";
 import { MAX_DOCUMENTS_PER_USER } from "@/lib/validators/documents";
@@ -88,6 +89,21 @@ export default async function SettingsPage() {
             assessments={assessments}
             documents={documents}
           />
+        </CardContent>
+      </Card>
+
+      <Separator className="my-8" />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Your Data</CardTitle>
+          <CardDescription>
+            Download all your coaching data — conversations, facts, goals,
+            reflections, and more — as a JSON file. Your data is always yours.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ExportButton />
         </CardContent>
       </Card>
 
