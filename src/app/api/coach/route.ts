@@ -85,11 +85,10 @@ export async function POST(req: NextRequest) {
     data: { sessionId: session.id, role: "user", content: message },
   });
 
-  // 6. Load conversation history
+  // 6. Load conversation history (last 50 messages for this session)
   const history = await db.chatMessage.findMany({
     where: { sessionId: session.id },
     orderBy: { createdAt: "asc" },
-    take: 20,
     select: { role: true, content: true },
   });
 

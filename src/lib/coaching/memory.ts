@@ -10,7 +10,7 @@ import { getSystemsContext } from "@/lib/coaching/systems";
  * Higher tiers get deeper history = smarter coach.
  */
 const MEMORY_DEPTH = {
-  free: { sessions: 3, esp: 5, aar: 3, journal: 5 },
+  free: { sessions: 5, esp: 5, aar: 3, journal: 5 },
   pro: { sessions: 15, esp: 20, aar: 10, journal: 30 },
   elite: { sessions: 30, esp: 50, aar: 20, journal: 100 },
 } as const;
@@ -80,7 +80,7 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
         updatedAt: true,
         messages: {
           orderBy: { createdAt: "asc" },
-          take: 20,
+          take: 40,
           select: { role: true, content: true },
         },
       },
@@ -161,17 +161,20 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
 
   // ── Past chat sessions (summarized for relevance) ──
   if (pastChatSessions.length > 0) {
-    const sessionBlocks = pastChatSessions.map((s) => {
+    const sessionBlocks = pastChatSessions.map((s, index) => {
       const date = s.updatedAt.toISOString().slice(0, 10);
       const title = s.title ?? "Untitled";
 
       if (s.messages.length === 0) return `- [${date}] "${title}" — (empty session)`;
 
-      return `### [${date}] "${title}"\n\n${summarizeSession(s.messages)}`;
+      // Most recent sessions get full fidelity (2000 chars/msg),
+      // older sessions get compressed (800 chars/msg) to save context.
+      const charLimit = index < 3 ? 2000 : 800;
+      return `### [${date}] "${title}"\n\n${summarizeSession(s.messages, charLimit)}`;
     });
 
     sections.push(
-      `## Your past conversations with this person\n\n${sessionBlocks.join("\n\n---\n\n")}`,
+      `## Your past conversations with this person\n\nThese are real conversations. Every detail matters — names, relationships, stories, commitments. Recall them accurately. Do not confuse or embellish details.\n\n${sessionBlocks.join("\n\n---\n\n")}`,
     );
   }
 
@@ -275,18 +278,24 @@ function truncate(str: string, max: number): string {
 
 /**
  * Summarize a chat session preserving the actual conversation flow.
- * Includes all user messages and key coach responses so the AI coach
- * can recall what was actually discussed.
+ * User messages are kept at full fidelity (up to charLimit) because they
+ * contain personal details (names, stories, relationships) that the coach
+ * must recall accurately. Coach responses are compressed more aggressively.
  */
 function summarizeSession(
   messages: Array<{ role: string; content: string }>,
+  charLimit: number = 2000,
 ): string {
   const lines: string[] = [];
+  const coachLimit = Math.min(charLimit, 600); // coach responses compress more
 
   for (const m of messages) {
-    const label = m.role === "user" ? "User" : "Coach";
-    // Keep messages substantial — 600 chars each to preserve real content
-    lines.push(`**${label}:** ${truncate(m.content, 600)}`);
+    if (m.role === "user") {
+      // Preserve user messages at high fidelity — their words are the source of truth
+      lines.push(`**User:** ${truncate(m.content, charLimit)}`);
+    } else {
+      lines.push(`**Coach:** ${truncate(m.content, coachLimit)}`);
+    }
   }
 
   return lines.join("\n\n");
