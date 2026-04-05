@@ -18,6 +18,7 @@ import {
   Settings,
   HelpCircle,
   Compass,
+  Brain,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -59,6 +60,7 @@ const navGroups = [
       { href: ROUTES.GOALS, label: "Goals", icon: Target },
       { href: ROUTES.TOP_TEN, label: "Top Ten", icon: Trophy },
       { href: ROUTES.LEDGER, label: "Confidence Ledger", icon: BookOpen },
+      { href: ROUTES.MEMORY, label: "Coach Memory", icon: Brain },
       { href: ROUTES.SETTINGS, label: "Settings", icon: Settings },
     ],
   },
