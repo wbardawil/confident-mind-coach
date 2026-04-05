@@ -261,6 +261,7 @@ model ChatSession {
   userId    String
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String?
+  summary   String?       // AI-generated factual summary of the conversation
   folderId  String?
   folder    ChatFolder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
   createdAt DateTime      @default(now())

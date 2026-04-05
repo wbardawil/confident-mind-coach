@@ -96,12 +96,13 @@ Respond in natural conversational language. No JSON. No markdown headers. Just t
 
 /**
  * Format DB messages for the Anthropic API.
- * Takes the last 40 messages and ensures the array starts with a "user" role.
+ * Takes the last 30 messages and ensures the array starts with a "user" role.
+ * 30 messages ≈ 15 exchanges ≈ ~7,500 tokens of conversation context.
  */
 export function buildChatMessages(
   history: Array<{ role: string; content: string }>,
 ): Array<{ role: "user" | "assistant"; content: string }> {
-  const recent = history.slice(-40);
+  const recent = history.slice(-30);
 
   // Anthropic requires the first message to be from the user
   const firstUserIdx = recent.findIndex((m) => m.role === "user");

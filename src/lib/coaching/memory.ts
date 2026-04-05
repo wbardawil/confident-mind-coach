@@ -9,10 +9,15 @@ import { getSystemsContext } from "@/lib/coaching/systems";
  * Memory depth by subscription tier.
  * Higher tiers get deeper history = smarter coach.
  */
+/**
+ * Memory depth by subscription tier.
+ * With summaries (~300 words each), even 30 sessions is only ~9,000 tokens.
+ * Previously raw transcripts made even 3 sessions cost ~9,000 tokens.
+ */
 const MEMORY_DEPTH = {
   free: { sessions: 5, esp: 5, aar: 3, journal: 5 },
-  pro: { sessions: 15, esp: 20, aar: 10, journal: 30 },
-  elite: { sessions: 30, esp: 50, aar: 20, journal: 100 },
+  pro: { sessions: 20, esp: 20, aar: 10, journal: 30 },
+  elite: { sessions: 40, esp: 50, aar: 20, journal: 100 },
 } as const;
 
 type MemoryTier = keyof typeof MEMORY_DEPTH;
@@ -69,7 +74,7 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
       select: { mode: true, outputJson: true, createdAt: true },
     }),
 
-    // Past chat sessions (depth by tier)
+    // Past chat sessions — prefer summaries over raw transcripts
     db.chatSession.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
@@ -77,11 +82,14 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
       select: {
         id: true,
         title: true,
+        summary: true,
         updatedAt: true,
+        _count: { select: { messages: true } },
         messages: {
+          where: { role: "user" },
           orderBy: { createdAt: "asc" },
-          take: 40,
-          select: { role: true, content: true },
+          take: 3,
+          select: { content: true },
         },
       },
     }),
@@ -159,23 +167,35 @@ export async function getCoachingMemory(userId: string, tier?: string): Promise<
     sections.push(systemsContext);
   }
 
-  // ── Past chat sessions (summarized for relevance) ──
+  // ── Past chat sessions (summaries for token efficiency) ──
   if (pastChatSessions.length > 0) {
-    const sessionBlocks = pastChatSessions.map((s, index) => {
-      const date = s.updatedAt.toISOString().slice(0, 10);
-      const title = s.title ?? "Untitled";
+    const sessionBlocks = pastChatSessions
+      .filter((s) => s._count.messages > 0)
+      .map((s) => {
+        const date = s.updatedAt.toISOString().slice(0, 10);
+        const title = s.title ?? "Untitled";
 
-      if (s.messages.length === 0) return `- [${date}] "${title}" — (empty session)`;
+        // Prefer the AI-generated summary (accurate + token-efficient)
+        if (s.summary) {
+          return `### [${date}] "${title}"\n\n${s.summary}`;
+        }
 
-      // Most recent sessions get full fidelity (2000 chars/msg),
-      // older sessions get compressed (800 chars/msg) to save context.
-      const charLimit = index < 3 ? 2000 : 800;
-      return `### [${date}] "${title}"\n\n${summarizeSession(s.messages, charLimit)}`;
-    });
+        // Fallback: use first few user messages as context
+        if (s.messages.length > 0) {
+          const previews = s.messages
+            .map((m) => truncate(m.content, 300))
+            .join(" | ");
+          return `### [${date}] "${title}"\n\nTopics discussed: ${previews}`;
+        }
 
-    sections.push(
-      `## Your past conversations with this person\n\nThese are real conversations. Every detail matters — names, relationships, stories, commitments. Recall them accurately. Do not confuse or embellish details.\n\n${sessionBlocks.join("\n\n---\n\n")}`,
-    );
+        return `- [${date}] "${title}" — (no summary available)`;
+      });
+
+    if (sessionBlocks.length > 0) {
+      sections.push(
+        `## Your past conversations with this person\n\nThese are factual summaries of your sessions. Every detail — names, relationships, stories, commitments — is recorded precisely. Recall them EXACTLY as written. Do not alter names or relationships.\n\n${sessionBlocks.join("\n\n---\n\n")}`,
+      );
+    }
   }
 
   // ── Recent ESP reflections ──
@@ -276,27 +296,3 @@ function truncate(str: string, max: number): string {
   return str.slice(0, max) + "...";
 }
 
-/**
- * Summarize a chat session preserving the actual conversation flow.
- * User messages are kept at full fidelity (up to charLimit) because they
- * contain personal details (names, stories, relationships) that the coach
- * must recall accurately. Coach responses are compressed more aggressively.
- */
-function summarizeSession(
-  messages: Array<{ role: string; content: string }>,
-  charLimit: number = 2000,
-): string {
-  const lines: string[] = [];
-  const coachLimit = Math.min(charLimit, 600); // coach responses compress more
-
-  for (const m of messages) {
-    if (m.role === "user") {
-      // Preserve user messages at high fidelity — their words are the source of truth
-      lines.push(`**User:** ${truncate(m.content, charLimit)}`);
-    } else {
-      lines.push(`**Coach:** ${truncate(m.content, coachLimit)}`);
-    }
-  }
-
-  return lines.join("\n\n");
-}
